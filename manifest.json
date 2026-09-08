@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "PriceForge",
+  "version": "0.1.0",
+  "description": "Game price intelligence for Steam.",
+  "content_scripts": [
+    {
+      "matches": ["https://store.steampowered.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
