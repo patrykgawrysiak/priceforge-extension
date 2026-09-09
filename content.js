@@ -15,14 +15,6 @@ if (!document.getElementById("priceforge-root")) {
   const discount = readText(".discount_pct");
 
   const discountValue = discount ? parseInt(discount.replace(/\D/g, ""), 10) : 0;
-    fetch(`http://localhost:3000/api/game/${appId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Priceforge API:", data);
-      })
-      .catch((error) => {
-        console.error("Priceforge API error:", error);
-      });
 
   const priceforge = document.createElement("aside");
   priceforge.id = "priceforge-root";
@@ -68,6 +60,17 @@ if (!document.getElementById("priceforge-root")) {
       .muted { color: #8aa0a4; font-weight: 400; }
       .footer { display: flex; align-items: center; gap: 6px; margin-top: 14px; color: #769196; font-size: 10px; }
       .status { width: 6px; height: 6px; background: #70e1c2; border-radius: 50%; box-shadow: 0 0 8px #70e1c2; }
+      .verdict { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; margin: 0 16px 16px; padding: 12px; border: 1px solid #2f5960; border-radius: 10px; background: linear-gradient(135deg, #152a2d, #0c151a 78%); box-shadow: inset 3px 0 0 #70e1c2; }
+      .verdict-icon { display: grid; place-items: center; width: 30px; height: 30px; color: #102020; background: #70e1c2; border-radius: 8px; font-size: 15px; font-weight: 700; }
+      .verdict-label { margin: 1px 0 5px; color: #70e1c2; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+      .verdict-text { color: #d7e4e5; font-size: 13px; line-height: 1.45; }
+      .verdict[data-type="historical-low"] { border-color: #4f826e; box-shadow: inset 3px 0 0 #8ee6ad; }
+      .verdict[data-type="historical-low"] .verdict-icon { background: #8ee6ad; }
+      .verdict[data-type="excellent"] { box-shadow: inset 3px 0 0 #70e1c2; }
+      .verdict[data-type="good"] { box-shadow: inset 3px 0 0 #f4c95d; }
+      .verdict[data-type="good"] .verdict-icon { color: #30280d; background: #f4c95d; }
+      .verdict[data-type="wait"] { box-shadow: inset 3px 0 0 #e5a45a; }
+      .verdict[data-type="wait"] .verdict-icon { color: #30200f; background: #e5a45a; }
       @keyframes rise { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
       @media (max-width: 480px) { .panel { right: 16px; bottom: 16px; } }
       @media (prefers-reduced-motion: reduce) { .panel { animation: none; } }
@@ -85,10 +88,20 @@ if (!document.getElementById("priceforge-root")) {
           ${discountValue ? `<span class="discount"></span>` : ""}
         </div>
         <div class="stats">
-          <div class="stat"><span class="stat-label">Original price</span><span class="stat-value original-price"></span></div>
-          <div class="stat"><span class="stat-label">Savings</span><span class="stat-value savings"></span></div>
+          <div class="stat">
+            <span class="stat-label">Original price</span>
+            <span class="stat-value original-price"></span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Historical low</span>
+            <span class="stat-value historical-low">Loading...</span>
+          </div>
         </div>
         <div class="footer"><span class="status"></span> Live price from Steam</div>
+      </div>
+      <div class="verdict" data-type="loading">
+        <div class="verdict-icon" aria-hidden="true">◆</div>
+        <div><div class="verdict-label">PriceForge verdict</div><div class="verdict-text">Analysing price...</div></div>
       </div>
     </section>`;
 
@@ -96,9 +109,71 @@ if (!document.getElementById("priceforge-root")) {
   shadowRoot.querySelector(".app-id-value").textContent = appId || "Unknown";
   shadowRoot.querySelector(".current-price").textContent = currentPrice;
   shadowRoot.querySelector(".original-price").textContent = originalPrice || "Not on sale";
-  shadowRoot.querySelector(".savings").textContent = discount || "No discount";
   if (discountValue) shadowRoot.querySelector(".discount").textContent = `${discountValue}% OFF`;
   shadowRoot.querySelector(".close").addEventListener("click", () => priceforge.remove());
 
   document.body.appendChild(priceforge);
+  fetch(`http://localhost:3000/api/game/${appId}`)
+  .then(response => response.json())
+  .then(data => {
+
+    const historicalLow = data.historicalLow?.price;
+    const historicalLowElement = shadowRoot.querySelector(".historical-low");
+
+    const currentPriceValue = parseFloat(currentPrice.replace(/[^0-9.]/g, ""));
+
+    // Calculate how far above the historical low we are
+    const percentAboveLow = historicalLow && currentPriceValue !== null ? ((currentPriceValue - historicalLow) / historicalLow) * 100 : null;
+    // round percentAboveLow to 2 decimal places if it's not null
+    const roundedPercentAboveLow = percentAboveLow !== null ? Math.round(percentAboveLow) : null;
+
+      // verdict and verdictType based on the percentAboveLow
+      let verdict = "";
+      let verdictType = "";
+        if (roundedPercentAboveLow === 0) {
+          verdict = "This is the lowest price we've seen, buy now!";
+          verdictType = "historical-low";
+        } else if (roundedPercentAboveLow <= 10) {
+          verdict = "You're very close to the historical low. This is an excellent price.";
+          verdictType = "excellent";
+        } else if (roundedPercentAboveLow <= 25) {
+          verdict = "This is a good price, although you may find it cheaper during a sale.";
+          verdictType = "good"; 
+        } else if (roundedPercentAboveLow <= 40) {
+          verdict = "The price is noticeably above its historical low. It may be worth waiting.";
+          verdictType = "wait";
+        } else {
+          verdict = "The price is well above its historical low. I'd wait for a sale.";
+          verdictType = "wait";
+        }
+
+      const verdictElement = shadowRoot.querySelector(".verdict-text");
+      const verdictPanel = shadowRoot.querySelector(".verdict");
+        if (verdictElement) {
+            verdictElement.textContent = verdict;
+        }
+        if (verdictPanel) {
+          verdictPanel.dataset.type = verdictType;
+        }
+
+
+      console.log("Current Price:", currentPriceValue)
+      console.log("Historical Low:", historicalLow)
+      console.log("Percent Above Low:", roundedPercentAboveLow)
+      console.log("Verdict:", verdict)
+      console.log("Verdict Type:", verdictType)
+
+    if (historicalLow !== undefined && historicalLowElement) {
+      historicalLowElement.textContent = `£${historicalLow.toFixed(2)}`;
+    }
+  })
+  .catch(error => {
+    console.error("PriceForge API error:", error);
+
+    const historicalLowElement = shadowRoot.querySelector(".historical-low");
+
+    if (historicalLowElement) {
+      historicalLowElement.textContent = "Unavailable";
+    }
+  });
 }
