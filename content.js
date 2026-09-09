@@ -13,7 +13,16 @@ if (!document.getElementById("priceforge-root")) {
   const currentPrice = readText(".discount_final_price, .game_purchase_price", "Price unavailable");
   const originalPrice = readText(".discount_original_price");
   const discount = readText(".discount_pct");
+
   const discountValue = discount ? parseInt(discount.replace(/\D/g, ""), 10) : 0;
+    fetch(`http://localhost:3000/api/game/${appId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Priceforge API:", data);
+      })
+      .catch((error) => {
+        console.error("Priceforge API error:", error);
+      });
 
   const priceforge = document.createElement("aside");
   priceforge.id = "priceforge-root";
