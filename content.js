@@ -1,7 +1,22 @@
+// ---------------------------------------------------------
+// PRICEFORGE — ONLY RUN ON STEAM GAME PAGES
+// ---------------------------------------------------------
+
+const gamePageMatch = window.location.pathname.match(
+  /^\/app\/(\d+)/
+);
+
+if (!gamePageMatch) {
+  console.log("PriceForge: Not a Steam game page.");
+} else {
+
+  const appId = gamePageMatch[1];
+
+  // ---------------------------------------------------------
+  // EXISTING PRICEFORGE CODE
+  // ---------------------------------------------------------
+
 if (!document.getElementById("priceforge-root")) {
-  const pathParts = window.location.pathname.split("/");
-  const appIndex = pathParts.indexOf("app");
-  const appId = appIndex !== -1 ? pathParts[appIndex + 1] : null;
 
   const purchaseArea = document.querySelector("#game_area_purchase");
   const readText = (selector, fallback = null) => {
@@ -9,7 +24,6 @@ if (!document.getElementById("priceforge-root")) {
     return element ? element.textContent.trim() : fallback;
   };
 
-  const gameTitle = document.querySelector(".apphub_AppName")?.textContent.trim() || "Unknown game";
   const currentPrice = readText(".discount_final_price, .game_purchase_price", "Price unavailable");
   const discount = readText(".discount_pct");
 
@@ -25,7 +39,7 @@ if (!document.getElementById("priceforge-root")) {
         position: fixed;
         right: 24px;
         bottom: 24px;
-        width: min(320px, calc(100vw - 32px));
+        width: min(328px, calc(100vw - 32px));
         box-sizing: border-box;
         overflow: hidden;
         color: #d6d7d8;
@@ -38,7 +52,7 @@ if (!document.getElementById("priceforge-root")) {
         z-index: 999999;
         animation: rise .4s cubic-bezier(.2, .8, .2, 1) both;
       }
-      .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 12px; background: linear-gradient(115deg, #1b2838, #171a21 68%); border-bottom: 1px solid #2a475e; }
+      .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: linear-gradient(115deg, #1b2838, #171a21 68%); border-bottom: 1px solid #2a475e; }
       .brand { display: flex; align-items: center; gap: 9px; color: #66c0f4; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
       .mark { display: grid; place-items: center; width: 25px; height: 25px; color: #66c0f4; background: transparent; border-radius: 0; box-shadow: none; font-size: 18px; }
       .header-actions { display: flex; align-items: center; gap: 3px; }
@@ -46,19 +60,20 @@ if (!document.getElementById("priceforge-root")) {
       .header-button:hover { color: #d6d7d8; background: rgba(102, 192, 244, .1); border-color: #2a475e; }
       .close { font-size: 18px; }
       .collapsed-verdict-icon { display: none; place-items: center; width: 23px; height: 23px; margin-left: auto; margin-right: 7px; color: #102020; background: #66c0f4; border-radius: 7px; box-shadow: 0 0 13px rgba(102, 192, 244, .25); font-size: 12px; font-weight: 700; }
-      .content { padding: 17px 16px 14px; background-image: linear-gradient(rgba(102, 192, 244, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(102, 192, 244, .035) 1px, transparent 1px); background-size: 24px 24px; }
-      .title { margin: 0 26px 0 0; color: #f5f5f5; font-size: 18px; font-weight: 700; line-height: 1.22; }
-      .price-stage { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; min-height: 94px; margin: 17px 0 13px; padding: 10px 0; border-top: 1px solid rgba(102, 192, 244, .16); border-bottom: 1px solid rgba(102, 192, 244, .16); }
+      .content { padding: 14px 16px 15px; background-image: linear-gradient(rgba(102, 192, 244, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(102, 192, 244, .035) 1px, transparent 1px); background-size: 24px 24px; }
+      .section-label { display: flex; align-items: center; gap: 7px; color: #8f98a0; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+      .section-label::before { width: 4px; height: 4px; content: ""; background: #66c0f4; border-radius: 50%; box-shadow: 0 0 8px #66c0f4; }
+      .price-stage { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; min-height: 86px; margin: 12px 0 13px; padding: 10px 0; border-top: 1px solid rgba(102, 192, 244, .16); border-bottom: 1px solid rgba(102, 192, 244, .16); }
       .price-main { text-align: center; }
       .eyebrow { margin-bottom: 5px; color: #769196; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-      .price { color: #66c0f4; font-size: 31px; font-weight: 700; line-height: 1; text-shadow: 0 0 18px rgba(102, 192, 244, .22); }
+      .price { color: #66c0f4; font-size: 33px; font-weight: 700; line-height: 1; text-shadow: 0 0 18px rgba(102, 192, 244, .22); }
       .micro-stat { min-width: 0; color: #8f98a0; font-size: 9px; line-height: 1.3; }
       .micro-stat.right { text-align: right; }
       .micro-label { display: block; margin-bottom: 3px; letter-spacing: .07em; text-transform: uppercase; }
       .micro-value { display: block; overflow: hidden; color: #d6d7d8; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
       .footer { display: flex; align-items: center; gap: 6px; color: #8f98a0; font-size: 10px; }
       .status { width: 6px; height: 6px; background: #66c0f4; border-radius: 50%; box-shadow: 0 0 8px #66c0f4; }
-      .verdict { margin: 0 16px 16px; padding: 13px; border: 1px solid #2a475e; border-radius: 10px; background: linear-gradient(135deg, #1b2838, #171a21 78%); box-shadow: inset 3px 0 0 #66c0f4; }
+      .verdict { margin: 0 16px 16px; padding: 14px; border: 1px solid #2a475e; border-radius: 10px; background: linear-gradient(135deg, #1b2838, #171a21 78%); box-shadow: inset 3px 0 0 #66c0f4, 0 8px 24px rgba(0, 0, 0, .16); }
       .verdict-header { display: grid; grid-template-columns: 36px 1fr auto; gap: 11px; align-items: center; }
       .verdict-icon { display: grid; place-items: center; width: 36px; height: 36px; color: #102020; background: #66c0f4; border-radius: 10px; box-shadow: 0 0 16px rgba(102, 192, 244, .2); font-size: 18px; font-weight: 700; }
       .verdict-label { margin: 0 0 3px; color: #66c0f4; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
@@ -99,7 +114,7 @@ if (!document.getElementById("priceforge-root")) {
         </div>
       </header>
       <div class="content">
-        <h2 class="title"></h2>
+        <div class="section-label">Price intelligence</div>
         <div class="price-stage">
           <div class="micro-stat"><span class="micro-label">Discount</span><span class="micro-value discount-value"></span></div>
           <div class="price-main"><div class="eyebrow">Current price</div><div class="price current-price"></div></div>
@@ -117,7 +132,6 @@ if (!document.getElementById("priceforge-root")) {
       </div>
     </section>`;
 
-  shadowRoot.querySelector(".title").textContent = gameTitle;
   shadowRoot.querySelector(".current-price").textContent = currentPrice;
   shadowRoot.querySelector(".discount-value").textContent = discount || "No discount";
   shadowRoot.querySelector(".close").addEventListener("click", () => priceforge.remove());
@@ -296,5 +310,6 @@ if (!document.getElementById("priceforge-root")) {
     console.log("Percent Above Low:", roundedPercentAboveLow);
     console.log("Verdict:", verdict);
     console.log("Verdict Type:", verdictType);
-  }
-);}
+  });
+}
+}
