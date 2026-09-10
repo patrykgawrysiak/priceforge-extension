@@ -113,67 +113,99 @@ if (!document.getElementById("priceforge-root")) {
   shadowRoot.querySelector(".close").addEventListener("click", () => priceforge.remove());
 
   document.body.appendChild(priceforge);
-  fetch(`http://localhost:3000/api/game/${appId}`)
-  .then(response => response.json())
-  .then(data => {
+    chrome.runtime.sendMessage(
+  {
+    type: "getGameData",
+    appId: appId
+  },
+  response => {
+    if (!response?.success) {
+      console.error(
+        "PriceForge API error:",
+        response?.error || "Unknown error"
+      );
+
+      const historicalLowElement =
+        shadowRoot.querySelector(".historical-low");
+
+      if (historicalLowElement) {
+        historicalLowElement.textContent = "Unavailable";
+      }
+
+      return;
+    }
+
+    const data = response.data;
 
     const historicalLow = data.historicalLow?.price;
-    const historicalLowElement = shadowRoot.querySelector(".historical-low");
+    const historicalLowElement =
+      shadowRoot.querySelector(".historical-low");
 
-    const currentPriceValue = parseFloat(currentPrice.replace(/[^0-9.]/g, ""));
+    const currentPriceValue = parseFloat(
+      currentPrice.replace(/[^0-9.]/g, "")
+    );
 
     // Calculate how far above the historical low we are
-    const percentAboveLow = historicalLow && currentPriceValue !== null ? ((currentPriceValue - historicalLow) / historicalLow) * 100 : null;
-    // round percentAboveLow to 2 decimal places if it's not null
-    const roundedPercentAboveLow = percentAboveLow !== null ? Math.round(percentAboveLow) : null;
+    const percentAboveLow =
+      historicalLow && currentPriceValue !== null
+        ? ((currentPriceValue - historicalLow) / historicalLow) * 100
+        : null;
 
-      // verdict and verdictType based on the percentAboveLow
-      let verdict = "";
-      let verdictType = "";
-        if (roundedPercentAboveLow === 0) {
-          verdict = "This is the lowest price we've seen, buy now!";
-          verdictType = "historical-low";
-        } else if (roundedPercentAboveLow <= 10) {
-          verdict = "You're very close to the historical low. This is an excellent price.";
-          verdictType = "excellent";
-        } else if (roundedPercentAboveLow <= 25) {
-          verdict = "This is a good price, although you may find it cheaper during a sale.";
-          verdictType = "good"; 
-        } else if (roundedPercentAboveLow <= 40) {
-          verdict = "The price is noticeably above its historical low. It may be worth waiting.";
-          verdictType = "wait";
-        } else {
-          verdict = "The price is well above its historical low. I'd wait for a sale.";
-          verdictType = "wait";
-        }
+    const roundedPercentAboveLow =
+      percentAboveLow !== null
+        ? Math.round(percentAboveLow)
+        : null;
 
-      const verdictElement = shadowRoot.querySelector(".verdict-text");
-      const verdictPanel = shadowRoot.querySelector(".verdict");
-        if (verdictElement) {
-            verdictElement.textContent = verdict;
-        }
-        if (verdictPanel) {
-          verdictPanel.dataset.type = verdictType;
-        }
+    // PriceForge verdict
+    let verdict = "";
+    let verdictType = "";
 
+    if (roundedPercentAboveLow === 0) {
+      verdict = "This is the lowest price we've seen, buy now!";
+      verdictType = "historical-low";
+    } else if (roundedPercentAboveLow <= 10) {
+      verdict =
+        "You're very close to the historical low. This is an excellent price.";
+      verdictType = "excellent";
+    } else if (roundedPercentAboveLow <= 25) {
+      verdict =
+        "This is a good price, although you may find it cheaper during a sale.";
+      verdictType = "good";
+    } else if (roundedPercentAboveLow <= 40) {
+      verdict =
+        "The price is noticeably above its historical low. It may be worth waiting.";
+      verdictType = "wait";
+    } else {
+      verdict =
+        "The price is well above its historical low. I'd wait for a sale.";
+      verdictType = "wait";
+    }
 
-      console.log("Current Price:", currentPriceValue)
-      console.log("Historical Low:", historicalLow)
-      console.log("Percent Above Low:", roundedPercentAboveLow)
-      console.log("Verdict:", verdict)
-      console.log("Verdict Type:", verdictType)
-
+    // Update historical low
     if (historicalLow !== undefined && historicalLowElement) {
-      historicalLowElement.textContent = `£${historicalLow.toFixed(2)}`;
+      historicalLowElement.textContent =
+        `£${historicalLow.toFixed(2)}`;
     }
-  })
-  .catch(error => {
-    console.error("PriceForge API error:", error);
 
-    const historicalLowElement = shadowRoot.querySelector(".historical-low");
+    // Update verdict
+    const verdictElement =
+      shadowRoot.querySelector(".verdict-text");
 
-    if (historicalLowElement) {
-      historicalLowElement.textContent = "Unavailable";
+    const verdictPanel =
+      shadowRoot.querySelector(".verdict");
+
+    if (verdictElement) {
+      verdictElement.textContent = verdict;
     }
-  });
-}
+
+    if (verdictPanel) {
+      verdictPanel.dataset.type = verdictType;
+    }
+
+    console.log("Current Price:", currentPriceValue);
+    console.log("Historical Low:", historicalLow);
+    console.log("Percent Above Low:", roundedPercentAboveLow);
+    console.log("Verdict:", verdict);
+    console.log("Verdict Type:", verdictType);
+  }
+);}
