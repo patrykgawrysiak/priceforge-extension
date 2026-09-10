@@ -507,6 +507,16 @@ function generatePriceVerdict(signals) {
     percentAboveTypicalSale !== null &&
     percentAboveTypicalSale < -5;
 
+  const veryCloseToTypicalSale =
+  percentAboveTypicalSale !== null &&
+  percentAboveTypicalSale >= 0 &&
+  percentAboveTypicalSale <= 5;
+
+  const moderatelyAboveTypicalSale =
+    percentAboveTypicalSale !== null &&
+    percentAboveTypicalSale > 5 &&
+    percentAboveTypicalSale < 20;
+
   const aboveTypicalSale =
     percentAboveTypicalSale !== null &&
     percentAboveTypicalSale > 0;
@@ -514,10 +524,6 @@ function generatePriceVerdict(signals) {
   const significantlyAboveTypicalSale =
     percentAboveTypicalSale !== null &&
     percentAboveTypicalSale >= 20;
-
-  const meaningfullyBelowAverage =
-    percentBelowAverage !== null &&
-    percentBelowAverage >= 15;
 
 
   // =======================================================
@@ -664,6 +670,24 @@ function generatePriceVerdict(signals) {
     };
   }
 
+
+  if (
+  veryCloseToTypicalSale &&
+  timesOnSale >= 2
+) {
+
+  const difference =
+    currentPrice - typicalSalePrice;
+
+  return {
+    verdict: "GOOD TIME",
+    type: "good",
+    confidence: "high",
+    reason:
+      `£${currentPrice.toFixed(2)} is only £${difference.toFixed(2)} above this game's usual sale price of £${typicalSalePrice.toFixed(2)}. ` +
+      `You've seen it reach this price repeatedly during recent sales, so while it isn't the absolute lowest price, you're already very close to the game's normal sale territory.`
+  };
+}
 
   // =======================================================
   // WAIT — SIGNIFICANTLY ABOVE TYPICAL SALE

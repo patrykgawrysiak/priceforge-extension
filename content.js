@@ -58,17 +58,24 @@ if (!document.getElementById("priceforge-root")) {
       .micro-value { display: block; overflow: hidden; color: #d6d7d8; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
       .footer { display: flex; align-items: center; gap: 6px; color: #8f98a0; font-size: 10px; }
       .status { width: 6px; height: 6px; background: #66c0f4; border-radius: 50%; box-shadow: 0 0 8px #66c0f4; }
-      .verdict { display: grid; grid-template-columns: 36px 1fr; gap: 11px; align-items: start; margin: 0 16px 16px; padding: 13px; border: 1px solid #2a475e; border-radius: 10px; background: linear-gradient(135deg, #1b2838, #171a21 78%); box-shadow: inset 3px 0 0 #66c0f4; }
+      .verdict { margin: 0 16px 16px; padding: 13px; border: 1px solid #2a475e; border-radius: 10px; background: linear-gradient(135deg, #1b2838, #171a21 78%); box-shadow: inset 3px 0 0 #66c0f4; }
+      .verdict-header { display: grid; grid-template-columns: 36px 1fr auto; gap: 11px; align-items: center; }
       .verdict-icon { display: grid; place-items: center; width: 36px; height: 36px; color: #102020; background: #66c0f4; border-radius: 10px; box-shadow: 0 0 16px rgba(102, 192, 244, .2); font-size: 18px; font-weight: 700; }
-      .verdict-label { margin: 1px 0 5px; color: #66c0f4; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-      .verdict-text { color: #d6d7d8; font-size: 13px; line-height: 1.45; }
+      .verdict-label { margin: 0 0 3px; color: #66c0f4; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+      .verdict-name { color: #f5f5f5; font-size: 15px; font-weight: 700; letter-spacing: .03em; }
+      .confidence { padding: 4px 7px; color: #9bb4c5; border: 1px solid #3a5870; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+      .speech { position: relative; margin-top: 13px; padding: 11px 12px; color: #d6d7d8; background: #111b24; border: 1px solid #30485d; border-radius: 4px 11px 11px 11px; font-size: 11px; line-height: 1.5; }
+      .speech::before { position: absolute; top: -7px; left: 15px; width: 12px; height: 12px; content: ""; background: #111b24; border-top: 1px solid #30485d; border-left: 1px solid #30485d; transform: rotate(45deg); }
       .verdict[data-type="historical-low"] { border-color: #4f826e; box-shadow: inset 3px 0 0 #8ee6ad; }
       .verdict[data-type="historical-low"] .verdict-icon { background: #8ee6ad; }
+      .verdict[data-type="historical-low"] .confidence { color: #9fe6b6; border-color: #4f826e; }
       .verdict[data-type="excellent"] { box-shadow: inset 3px 0 0 #66c0f4; }
       .verdict[data-type="good"] { box-shadow: inset 3px 0 0 #f4c95d; }
       .verdict[data-type="good"] .verdict-icon { color: #30280d; background: #f4c95d; }
+      .verdict[data-type="good"] .confidence { color: #f4c95d; border-color: #766633; }
       .verdict[data-type="wait"] { box-shadow: inset 3px 0 0 #e5a45a; }
       .verdict[data-type="wait"] .verdict-icon { color: #30200f; background: #e5a45a; }
+      .verdict[data-type="wait"] .confidence { color: #e5a45a; border-color: #765331; }
       .panel.is-collapsed { width: max-content; min-width: 164px; }
       .panel.is-collapsed .topbar { border-bottom-color: transparent; }
       .panel.is-collapsed .content,
@@ -98,11 +105,15 @@ if (!document.getElementById("priceforge-root")) {
           <div class="price-main"><div class="eyebrow">Current price</div><div class="price current-price"></div></div>
           <div class="micro-stat right"><span class="micro-label">All-time low</span><span class="micro-value historical-low">Loading...</span></div>
         </div>
-        <div class="footer"><span class="status"></span> Live price from Steam</div>
+        <div class="footer"><span class="status"></span> Is it the right time to buy?</div>
       </div>
       <div class="verdict" data-type="loading">
-        <div class="verdict-icon" aria-hidden="true">◆</div>
-        <div><div class="verdict-label">PriceForge verdict</div><div class="verdict-text">Analysing price...</div></div>
+        <div class="verdict-header">
+          <div class="verdict-icon" aria-hidden="true">◆</div>
+          <div><div class="verdict-label">PriceForge verdict</div><div class="verdict-name">Analysing price...</div></div>
+          <span class="confidence">Checking</span>
+        </div>
+        <div class="speech verdict-text">I am reviewing the recent price history.</div>
       </div>
     </section>`;
 
@@ -151,6 +162,7 @@ if (!document.getElementById("priceforge-root")) {
     }
 
     const data = response.data;
+    const apiVerdict = data.priceVerdict;
 
     const historicalLow = data.historicalLow?.price;
     const historicalLowElement =
@@ -196,6 +208,16 @@ if (!document.getElementById("priceforge-root")) {
       verdictType = "wait";
     }
 
+    const visualVerdictType =
+      apiVerdict?.type ||
+      (apiVerdict?.verdict === "BUY NOW"
+        ? "historical-low"
+        : apiVerdict?.verdict === "WAIT"
+          ? "wait"
+          : apiVerdict?.verdict === "GOOD TIME"
+            ? "excellent"
+            : verdictType);
+
     // Update historical low
     if (historicalLow !== undefined && historicalLowElement) {
       historicalLowElement.textContent =
@@ -227,19 +249,46 @@ if (!document.getElementById("priceforge-root")) {
     }
 
     if (verdictPanel) {
-      verdictPanel.dataset.type = verdictType;
+      verdictPanel.dataset.type = visualVerdictType;
     }
 
     if (panel) {
-      panel.dataset.type = verdictType;
+      panel.dataset.type = visualVerdictType;
     }
 
     if (verdictIcon) {
-      verdictIcon.textContent = verdictIcons[verdictType] || "◆";
+      verdictIcon.textContent = verdictIcons[visualVerdictType] || "◆";
     }
 
     if (collapsedVerdictIcon) {
-      collapsedVerdictIcon.textContent = verdictIcons[verdictType] || "◆";
+      collapsedVerdictIcon.textContent = verdictIcons[visualVerdictType] || "◆";
+    }
+
+    const verdictName =
+      shadowRoot.querySelector(".verdict-name");
+
+    const confidence =
+      shadowRoot.querySelector(".confidence");
+
+    const displayedVerdict =
+      apiVerdict?.verdict || verdict;
+
+    const displayedConfidence =
+      apiVerdict?.confidence || (verdictType === "wait" ? "low" : "medium");
+
+    const displayedReason =
+      apiVerdict?.reason || verdict;
+
+    if (verdictName) {
+      verdictName.textContent = displayedVerdict;
+    }
+
+    if (confidence) {
+      confidence.textContent = `${displayedConfidence} confidence`;
+    }
+
+    if (verdictElement) {
+      verdictElement.textContent = displayedReason;
     }
 
     console.log("Current Price:", currentPriceValue);
