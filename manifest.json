@@ -14,5 +14,11 @@
       "matches": ["https://store.steampowered.com/*"],
       "js": ["content.js"]
     }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["test.png"],
+      "matches": ["https://store.steampowered.com/*"]
+    }
   ]
 }

@@ -39,58 +39,55 @@ if (!document.getElementById("priceforge-root")) {
         position: fixed;
         right: 24px;
         bottom: 24px;
-        width: min(328px, calc(100vw - 32px));
+        width: min(320px, calc(100vw - 32px));
         box-sizing: border-box;
         overflow: hidden;
         color: #d6d7d8;
-        background: #171a21;
-        border: 1px solid #2a475e;
-        border-radius: 14px;
+        background: #15191f;
+        border: 1px solid #303944;
+        border-radius: 12px;
         box-shadow: 0 20px 54px rgba(0, 0, 0, .48), 0 0 28px rgba(102, 192, 244, .1);
         font-family: "Trebuchet MS", "Segoe UI", sans-serif;
         letter-spacing: 0;
         z-index: 999999;
         animation: rise .4s cubic-bezier(.2, .8, .2, 1) both;
       }
-      .topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: linear-gradient(115deg, #1b2838, #171a21 68%); border-bottom: 1px solid #2a475e; }
-      .brand { display: flex; align-items: center; gap: 9px; color: #66c0f4; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-      .mark { display: grid; place-items: center; width: 25px; height: 25px; color: #66c0f4; background: transparent; border-radius: 0; box-shadow: none; font-size: 18px; }
+      .topbar { display: flex; align-items: center; justify-content: flex-end; padding: 10px 12px; border-bottom: 1px solid #303944; }
+      .brand { display: none; }
+      .mark { display: none; }
       .header-actions { display: flex; align-items: center; gap: 3px; }
       .header-button { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid transparent; border-radius: 6px; color: #7c9a9e; background: transparent; cursor: pointer; font-size: 15px; line-height: 1; }
-      .header-button:hover { color: #d6d7d8; background: rgba(102, 192, 244, .1); border-color: #2a475e; }
+      .header-button:hover { color: #d6d7d8; background: rgba(102, 192, 244, .1); border-color: #3c5263; }
       .close { font-size: 18px; }
       .collapsed-verdict-icon { display: none; place-items: center; width: 23px; height: 23px; margin-left: auto; margin-right: 7px; color: #102020; background: #66c0f4; border-radius: 7px; box-shadow: 0 0 13px rgba(102, 192, 244, .25); font-size: 12px; font-weight: 700; }
-      .content { padding: 14px 16px 15px; background-image: linear-gradient(rgba(102, 192, 244, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(102, 192, 244, .035) 1px, transparent 1px); background-size: 24px 24px; }
-      .section-label { display: flex; align-items: center; gap: 7px; color: #8f98a0; font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-      .section-label::before { width: 4px; height: 4px; content: ""; background: #66c0f4; border-radius: 50%; box-shadow: 0 0 8px #66c0f4; }
-      .price-stage { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; min-height: 86px; margin: 12px 0 13px; padding: 10px 0; border-top: 1px solid rgba(102, 192, 244, .16); border-bottom: 1px solid rgba(102, 192, 244, .16); }
-      .price-main { text-align: center; }
-      .eyebrow { margin-bottom: 5px; color: #769196; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-      .price { color: #66c0f4; font-size: 33px; font-weight: 700; line-height: 1; text-shadow: 0 0 18px rgba(102, 192, 244, .22); }
-      .micro-stat { min-width: 0; color: #8f98a0; font-size: 9px; line-height: 1.3; }
-      .micro-stat.right { text-align: right; }
-      .micro-label { display: block; margin-bottom: 3px; letter-spacing: .07em; text-transform: uppercase; }
-      .micro-value { display: block; overflow: hidden; color: #d6d7d8; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-      .footer { display: flex; align-items: center; gap: 6px; color: #8f98a0; font-size: 10px; }
-      .status { width: 6px; height: 6px; background: #66c0f4; border-radius: 50%; box-shadow: 0 0 8px #66c0f4; }
-      .verdict { margin: 0 16px 16px; padding: 14px; border: 1px solid #2a475e; border-radius: 10px; background: linear-gradient(135deg, #1b2838, #171a21 78%); box-shadow: inset 3px 0 0 #66c0f4, 0 8px 24px rgba(0, 0, 0, .16); }
-      .verdict-header { display: grid; grid-template-columns: 36px 1fr auto; gap: 11px; align-items: center; }
-      .verdict-icon { display: grid; place-items: center; width: 36px; height: 36px; color: #102020; background: #66c0f4; border-radius: 10px; box-shadow: 0 0 16px rgba(102, 192, 244, .2); font-size: 18px; font-weight: 700; }
-      .verdict-label { margin: 0 0 3px; color: #66c0f4; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-      .verdict-name { color: #f5f5f5; font-size: 15px; font-weight: 700; letter-spacing: .03em; }
-      .confidence { padding: 4px 7px; color: #9bb4c5; border: 1px solid #3a5870; border-radius: 999px; font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
-      .speech { position: relative; margin-top: 13px; padding: 11px 12px; color: #d6d7d8; background: #111b24; border: 1px solid #30485d; border-radius: 4px 11px 11px 11px; font-size: 11px; line-height: 1.5; }
-      .speech::before { position: absolute; top: -7px; left: 15px; width: 12px; height: 12px; content: ""; background: #111b24; border-top: 1px solid #30485d; border-left: 1px solid #30485d; transform: rotate(45deg); }
-      .verdict[data-type="historical-low"] { border-color: #4f826e; box-shadow: inset 3px 0 0 #8ee6ad; }
-      .verdict[data-type="historical-low"] .verdict-icon { background: #8ee6ad; }
-      .verdict[data-type="historical-low"] .confidence { color: #9fe6b6; border-color: #4f826e; }
-      .verdict[data-type="excellent"] { box-shadow: inset 3px 0 0 #66c0f4; }
-      .verdict[data-type="good"] { box-shadow: inset 3px 0 0 #f4c95d; }
-      .verdict[data-type="good"] .verdict-icon { color: #30280d; background: #f4c95d; }
-      .verdict[data-type="good"] .confidence { color: #f4c95d; border-color: #766633; }
-      .verdict[data-type="wait"] { box-shadow: inset 3px 0 0 #e5a45a; }
-      .verdict[data-type="wait"] .verdict-icon { color: #30200f; background: #e5a45a; }
-      .verdict[data-type="wait"] .confidence { color: #e5a45a; border-color: #765331; }
+      .content { padding: 19px 20px 20px; }
+      .decision { display: grid; grid-template-columns: 9px 1fr; gap: 13px; align-items: center; margin-bottom: 20px; }
+      .decision-marker { width: 9px; height: 48px; border-radius: 3px; background: #66c0f4; box-shadow: 0 0 16px rgba(102, 192, 244, .3); }
+      .decision-label { margin-bottom: 3px; color: #8f98a0; font-size: 9px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+      .decision-name { color: #f5f5f5; font-size: 27px; font-weight: 800; letter-spacing: .02em; line-height: 1; }
+      .confidence { margin-top: 6px; color: #9bb4c5; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+      .analysis { padding-top: 17px; border-top: 1px solid #303944; }
+      .section-label { margin-bottom: 15px; color: #8f98a0; font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+      .price-chart { display: grid; gap: 13px; }
+      .chart-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) 68px; gap: 8px; align-items: center; min-height: 18px; color: #d6d7d8; font-size: 11px; }
+      .chart-price { font-variant-numeric: tabular-nums; }
+      .chart-track { position: relative; width: 100%; height: 5px; overflow: visible; background: #303944; border-radius: 3px; }
+      .chart-fill { display: block; height: 100%; min-width: 5px; background: #506575; border-radius: 3px; }
+      .chart-row.current .chart-fill { background: #66c0f4; }
+      .chart-marker { position: absolute; top: 50%; left: var(--marker-position, 100%); width: 12px; height: 12px; border: 2px solid #15191f; border-radius: 50%; background: #66c0f4; box-shadow: 0 0 0 1px #66c0f4, 0 0 12px rgba(102, 192, 244, .42); transform: translate(-50%, -50%); }
+      .chart-note { color: #8f98a0; font-size: 10px; white-space: nowrap; }
+      .verdict { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; align-items: start; margin-top: 20px; padding-top: 17px; border-top: 1px solid #303944; }
+      .verdict-speaker { display: block; width: 56px; height: 56px; overflow: hidden; }
+      .verdict-speaker img { display: block; width: 100%; height: 100%; object-fit: contain; }
+      .speech { position: relative; padding: 10px 11px; color: #d6d7d8; background: #1c252e; border: 1px solid #3a4a58; border-radius: 4px 10px 10px 10px; font-size: 11px; line-height: 1.55; }
+      .speech::before { position: absolute; top: 20px; left: -6px; width: 10px; height: 10px; content: ""; background: #1c252e; border-bottom: 1px solid #3a4a58; border-left: 1px solid #3a4a58; transform: rotate(45deg); }
+      .verdict-icon, .verdict-label { display: none; }
+      .panel[data-type="historical-low"] .decision-marker { background: #8ee6ad; }
+      .panel[data-type="historical-low"] .chart-row.current .chart-fill, .panel[data-type="historical-low"] .chart-marker { background: #8ee6ad; }
+      .panel[data-type="good"] .decision-marker { background: #f4c95d; }
+      .panel[data-type="good"] .chart-row.current .chart-fill, .panel[data-type="good"] .chart-marker { background: #f4c95d; }
+      .panel[data-type="wait"] .decision-marker { background: #e5a45a; }
+      .panel[data-type="wait"] .chart-row.current .chart-fill, .panel[data-type="wait"] .chart-marker { background: #e5a45a; }
       .panel.is-collapsed { width: max-content; min-width: 164px; }
       .panel.is-collapsed .topbar { border-bottom-color: transparent; }
       .panel.is-collapsed .content,
@@ -114,26 +111,26 @@ if (!document.getElementById("priceforge-root")) {
         </div>
       </header>
       <div class="content">
-        <div class="section-label">Price intelligence</div>
-        <div class="price-stage">
-          <div class="micro-stat"><span class="micro-label">Discount</span><span class="micro-value discount-value"></span></div>
-          <div class="price-main"><div class="eyebrow">Current price</div><div class="price current-price"></div></div>
-          <div class="micro-stat right"><span class="micro-label">All-time low</span><span class="micro-value historical-low">Loading...</span></div>
+        <div class="decision">
+          <span class="decision-marker" aria-hidden="true"></span>
+          <div><div class="decision-label">PriceForge verdict</div><div class="decision-name">Analysing...</div><div class="confidence">Checking confidence</div></div>
         </div>
-        <div class="footer"><span class="status"></span> Is it the right time to buy?</div>
-      </div>
-      <div class="verdict" data-type="loading">
-        <div class="verdict-header">
-          <div class="verdict-icon" aria-hidden="true">◆</div>
-          <div><div class="verdict-label">PriceForge verdict</div><div class="verdict-name">Analysing price...</div></div>
-          <span class="confidence">Checking</span>
+        <div class="analysis">
+          <div class="section-label">Price position</div>
+          <div class="price-chart">
+            <div class="chart-row" data-chart="average"><span class="chart-price">--</span><span class="chart-track"><span class="chart-fill"></span></span><span class="chart-note">Usual price</span></div>
+            <div class="chart-row current" data-chart="current"><span class="chart-price">--</span><span class="chart-track"><span class="chart-fill"></span><span class="chart-marker" aria-hidden="true"></span></span><span class="chart-note">Current</span></div>
+            <div class="chart-row" data-chart="typical"><span class="chart-price">--</span><span class="chart-track"><span class="chart-fill"></span></span><span class="chart-note">Typical sale</span></div>
+            <div class="chart-row" data-chart="recent"><span class="chart-price">--</span><span class="chart-track"><span class="chart-fill"></span></span><span class="chart-note">Recent low</span></div>
+          </div>
         </div>
-        <div class="speech verdict-text">I am reviewing the recent price history.</div>
+        <div class="verdict">
+          <div class="verdict-speaker" aria-hidden="true"><img src="${chrome.runtime.getURL("test.png")}" alt=""></div>
+          <div class="speech verdict-text">I am reviewing the recent price history.</div>
+        </div>
       </div>
     </section>`;
 
-  shadowRoot.querySelector(".current-price").textContent = currentPrice;
-  shadowRoot.querySelector(".discount-value").textContent = discount || "No discount";
   shadowRoot.querySelector(".close").addEventListener("click", () => priceforge.remove());
 
   const panel = shadowRoot.querySelector(".panel");
@@ -177,6 +174,7 @@ if (!document.getElementById("priceforge-root")) {
 
     const data = response.data;
     const apiVerdict = data.priceVerdict;
+    const signals = data.priceSignals;
 
     const historicalLow = data.historicalLow?.price;
     const historicalLowElement =
@@ -185,6 +183,41 @@ if (!document.getElementById("priceforge-root")) {
     const currentPriceValue = parseFloat(
       currentPrice.replace(/[^0-9.]/g, "")
     );
+
+    const formatPrice = value =>
+      typeof value === "number" ? `£${value.toFixed(2)}` : "Unavailable";
+
+    const chartValues = {
+      average: signals?.averagePrice,
+      current: signals?.currentPrice ?? currentPriceValue,
+      typical: signals?.typicalSalePrice,
+      recent: signals?.recentLow
+    };
+
+    const availableChartValues = Object.values(chartValues)
+      .filter(value => typeof value === "number" && Number.isFinite(value));
+    const chartMaximum = Math.max(...availableChartValues, 1);
+
+    Object.entries(chartValues).forEach(([key, value]) => {
+      const row = shadowRoot.querySelector(`[data-chart="${key}"]`);
+      if (!row) {
+        return;
+      }
+
+      row.querySelector(".chart-price").textContent = formatPrice(value);
+      row.querySelector(".chart-fill").style.width =
+        typeof value === "number"
+          ? `${Math.max(5, (value / chartMaximum) * 100)}%`
+          : "5%";
+    });
+
+    const currentRow = shadowRoot.querySelector('[data-chart="current"]');
+    if (currentRow && typeof chartValues.current === "number") {
+      currentRow.style.setProperty(
+        "--marker-position",
+        `${Math.max(0, Math.min(100, (chartValues.current / chartMaximum) * 100))}%`
+      );
+    }
 
     // Calculate how far above the historical low we are
     const percentAboveLow =
@@ -279,7 +312,7 @@ if (!document.getElementById("priceforge-root")) {
     }
 
     const verdictName =
-      shadowRoot.querySelector(".verdict-name");
+      shadowRoot.querySelector(".decision-name");
 
     const confidence =
       shadowRoot.querySelector(".confidence");
