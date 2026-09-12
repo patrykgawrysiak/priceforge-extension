@@ -130,128 +130,163 @@ function detectSalePeriods(priceHistory) {
   return salePeriods;
 }
 
+
 function detectPriceRegimeChange(history) {
+
   if (!Array.isArray(history) || history.length < 5) {
     return { detected: false };
   }
 
+
   const observations = history
+
     .filter(
       entry =>
         entry &&
         entry.timestamp &&
         Number.isFinite(Number(entry.price))
     )
+
     .map(entry => ({
       timestamp: new Date(entry.timestamp),
+
       price:
         Number.isFinite(Number(entry.regularPrice))
           ? Number(entry.regularPrice)
           : Number(entry.price),
-      discount: Number(entry.discount) || 0
+
+      discount:
+        Number(entry.discount) || 0
     }))
-    .filter(entry => !Number.isNaN(entry.timestamp.getTime()))
-    .sort((a, b) => a.timestamp - b.timestamp);
+
+    .filter(
+      entry =>
+        !Number.isNaN(
+          entry.timestamp.getTime()
+        )
+    )
+
+    .sort(
+      (a, b) =>
+        a.timestamp - b.timestamp
+    );
+
 
   if (observations.length < 5) {
     return { detected: false };
   }
 
+
   /*
    * We only care about the game's NORMAL price.
-   *
-   * This means:
-   *
-   * £15.49
-   * £15.49
-   * £15.49
-   * £15.49
-   * £23.49
-   * £23.49
-   *
-   * rather than the actual sale prices.
    */
 
-  const normalPrices = observations.map(entry => ({
-    timestamp: entry.timestamp,
-    price: entry.price
-  }));
+  const normalPrices =
+    observations.map(entry => ({
+      timestamp:
+        entry.timestamp,
+
+      price:
+        entry.price
+    }));
+
 
   /*
-   * Look backwards from the latest price.
-   *
-   * The latest normal price is our candidate "new" price.
+   * Latest normal price = candidate new price.
    */
 
   const latestPrice =
-    normalPrices[normalPrices.length - 1].price;
+    normalPrices[
+      normalPrices.length - 1
+    ].price;
+
 
   /*
-   * Find observations that match the latest price.
+   * Find observations that match latest price.
    */
 
-  const recentMatches = normalPrices.filter(
-    entry =>
-      Math.abs(entry.price - latestPrice) /
-        latestPrice <=
-      0.05
-  );
+  const recentMatches =
+    normalPrices.filter(
+      entry =>
+        Math.abs(entry.price - latestPrice) /
+          latestPrice <=
+        0.05
+    );
 
-  /*
-   * We need at least two observations supporting the
-   * new price.
-   */
 
   if (recentMatches.length < 1) {
-  return { detected: false };
-}
+    return { detected: false };
+  }
+
 
   /*
-   * Find the most recent observation belonging to the
-   * previous price regime.
+   * Find previous price regime.
    */
 
   let changeIndex = -1;
 
-for (let i = normalPrices.length - 2; i >= 2; i--) {
-  const price = normalPrices[i].price;
 
-  const difference =
-    Math.abs(price - latestPrice) /
-    latestPrice;
+  for (
+    let i = normalPrices.length - 2;
+    i >= 2;
+    i--
+  ) {
 
-  if (difference > 0.05) {
-    changeIndex = i + 1;
-    break;
+    const price =
+      normalPrices[i].price;
+
+
+    const difference =
+      Math.abs(price - latestPrice) /
+      latestPrice;
+
+
+    if (difference > 0.05) {
+
+      changeIndex =
+        i + 1;
+
+      break;
+    }
   }
-}
+
 
   if (changeIndex === -1) {
     return { detected: false };
   }
 
+
   /*
-   * Everything before the change should represent the
+   * Everything before the change represents the
    * old normal price.
    */
 
   const oldObservations =
-    normalPrices.slice(0, changeIndex);
+    normalPrices.slice(
+      0,
+      changeIndex
+    );
+
 
   if (oldObservations.length < 3) {
     return { detected: false };
   }
 
+
   /*
-   * Determine the established old normal price by taking
-   * the most common value.
+   * Determine established old normal price.
    */
 
   const counts = new Map();
 
+
   for (const observation of oldObservations) {
+
     const rounded =
-      Number(observation.price.toFixed(2));
+      Number(
+        observation.price.toFixed(2)
+      );
+
 
     counts.set(
       rounded,
@@ -259,65 +294,180 @@ for (let i = normalPrices.length - 2; i >= 2; i--) {
     );
   }
 
+
   const oldNormalPrice =
     [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])[0]?.[0];
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )[0]?.[0];
+
 
   if (!Number.isFinite(oldNormalPrice)) {
     return { detected: false };
   }
 
+
   /*
-   * Make sure the old price was actually established.
+   * Make sure old price was actually established.
    */
 
-  const oldMatches = oldObservations.filter(
-    observation =>
-      Math.abs(
-        observation.price - oldNormalPrice
-      ) /
-        oldNormalPrice <=
-      0.05
-  );
+  const oldMatches =
+    oldObservations.filter(
+      observation =>
+        Math.abs(
+          observation.price -
+          oldNormalPrice
+        ) /
+          oldNormalPrice <=
+        0.05
+    );
+
 
   if (oldMatches.length < 3) {
     return { detected: false };
   }
 
+
   /*
-   * Calculate the size of the price change.
+   * Calculate size of price change.
    */
 
   const changePercent =
-    ((latestPrice - oldNormalPrice) /
-      oldNormalPrice) *
+    (
+      (latestPrice -
+        oldNormalPrice) /
+      oldNormalPrice
+    ) *
     100;
 
+
   /*
-   * Ignore ordinary price fluctuations.
+   * Ignore ordinary fluctuations.
    */
 
   if (Math.abs(changePercent) < 15) {
     return { detected: false };
   }
 
+
   return {
-    detected: true,
-    oldNormalPrice: Number(
-      oldNormalPrice.toFixed(2)
-    ),
-    newNormalPrice: Number(
-      latestPrice.toFixed(2)
-    ),
-    changePercent: Number(
-      changePercent.toFixed(2)
-    ),
+
+    detected:
+      true,
+
+    oldNormalPrice:
+      Number(
+        oldNormalPrice.toFixed(2)
+      ),
+
+    newNormalPrice:
+      Number(
+        latestPrice.toFixed(2)
+      ),
+
+    changePercent:
+      Number(
+        changePercent.toFixed(2)
+      ),
+
     changeDate:
-      normalPrices[changeIndex].timestamp.toISOString()
+      normalPrices[
+        changeIndex
+      ].timestamp.toISOString()
+
   };
 }
 
 
+// =========================================================
+// SALE FREQUENCY DETECTION
+// =========================================================
+
+function detectSaleFrequency(
+  salePeriods,
+  averageDaysBetweenSales
+) {
+
+  if (
+    !Array.isArray(salePeriods) ||
+    salePeriods.length < 2 ||
+    !Number.isFinite(averageDaysBetweenSales) ||
+    averageDaysBetweenSales <= 0
+  ) {
+
+    return {
+
+      classification:
+        "unknown",
+
+      label:
+        null,
+
+      salesObserved:
+        Array.isArray(salePeriods)
+          ? salePeriods.length
+          : 0,
+
+      averageDaysBetweenSales:
+        null
+    };
+  }
+
+
+  let classification;
+  let label;
+
+
+  if (averageDaysBetweenSales < 20) {
+
+    classification =
+      "very-frequent";
+
+    label =
+      "This game goes on sale very often.";
+
+  } else if (averageDaysBetweenSales < 45) {
+
+    classification =
+      "frequent";
+
+    label =
+      "This game goes on sale frequently.";
+
+  } else if (averageDaysBetweenSales < 90) {
+
+    classification =
+      "occasional";
+
+    label =
+      "This game goes on sale occasionally.";
+
+  } else {
+
+    classification =
+      "rare";
+
+    label =
+      "This game rarely goes on sale.";
+  }
+
+
+  return {
+
+    classification,
+
+    label,
+
+    salesObserved:
+      salePeriods.length,
+
+    averageDaysBetweenSales:
+      Number(
+        averageDaysBetweenSales.toFixed(1)
+      )
+  };
+}
 
 
 // =========================================================
@@ -360,6 +510,8 @@ function calculatePriceSignals(
 
       averageDaysBetweenSales: null,
 
+      saleFrequency: null,
+
       daysSinceLastSale: null,
 
       timesBelowCurrentPrice: 0,
@@ -370,7 +522,9 @@ function calculatePriceSignals(
 
       percentAboveRecentLow: null,
 
-      lastSaleLow: null
+      lastSaleLow: null,
+
+      priceRegimeChange: null
 
     };
   }
@@ -453,6 +607,8 @@ function calculatePriceSignals(
 
       averageDaysBetweenSales: null,
 
+      saleFrequency: null,
+
       daysSinceLastSale: null,
 
       timesBelowCurrentPrice: 0,
@@ -463,7 +619,9 @@ function calculatePriceSignals(
 
       percentAboveRecentLow: null,
 
-      lastSaleLow: null
+      lastSaleLow: null,
+
+      priceRegimeChange: null
 
     };
   }
@@ -475,7 +633,7 @@ function calculatePriceSignals(
 
   const prices =
     validHistory.map(
-      (entry) =>
+      entry =>
         entry.price
     );
 
@@ -485,7 +643,8 @@ function calculatePriceSignals(
       (sum, price) =>
         sum + price,
       0
-    ) / prices.length;
+    ) /
+    prices.length;
 
 
   // =======================================================
@@ -496,12 +655,12 @@ function calculatePriceSignals(
     validHistory
 
       .map(
-        (entry) =>
+        entry =>
           entry.regularPrice
       )
 
       .filter(
-        (price) =>
+        price =>
           typeof price === "number" &&
           Number.isFinite(price) &&
           price > 0
@@ -537,24 +696,24 @@ function calculatePriceSignals(
         regularPriceCounts
       )
 
-        .sort(
-          (a, b) => {
+      .sort(
+        (a, b) => {
 
-            // Most frequently recorded price
-            if (b[1] !== a[1]) {
-              return b[1] - a[1];
-            }
-
-            // If tied, prefer higher price
-            return (
-              Number(b[0]) -
-              Number(a[0])
-            );
+          if (b[1] !== a[1]) {
+            return b[1] - a[1];
           }
-        );
+
+          return (
+            Number(b[0]) -
+            Number(a[0])
+          );
+        }
+      );
 
 
-    if (sortedRegularPrices.length > 0) {
+    if (
+      sortedRegularPrices.length > 0
+    ) {
 
       normalPrice =
         Number(
@@ -570,14 +729,14 @@ function calculatePriceSignals(
 
   const saleEntries =
     validHistory.filter(
-      (entry) =>
+      entry =>
         entry.discount > 0
     );
 
 
   const salePrices =
     saleEntries.map(
-      (entry) =>
+      entry =>
         entry.price
     );
 
@@ -616,12 +775,10 @@ function calculatePriceSignals(
         .sort(
           (a, b) => {
 
-            // Most frequently seen
             if (b[1] !== a[1]) {
               return b[1] - a[1];
             }
 
-            // If tied, prefer cheaper
             return (
               Number(a[0]) -
               Number(b[0])
@@ -630,7 +787,9 @@ function calculatePriceSignals(
         );
 
 
-    if (sortedSalePrices.length > 0) {
+    if (
+      sortedSalePrices.length > 0
+    ) {
 
       typicalSalePrice =
         Number(
@@ -689,7 +848,7 @@ function calculatePriceSignals(
       .reverse()
 
       .find(
-        (entry) =>
+        entry =>
           entry.price === recentLow
       ) || null;
 
@@ -788,16 +947,25 @@ function calculatePriceSignals(
 
 
   // =======================================================
+  // SALE FREQUENCY
+  // =======================================================
+
+  const saleFrequency =
+    detectSaleFrequency(
+      salePeriods,
+      averageDaysBetweenSales
+    );
+
+
+  // =======================================================
   // LAST SALE
   // =======================================================
 
   const lastSalePeriod =
     salePeriods.length > 0
-
       ? salePeriods[
           salePeriods.length - 1
         ]
-
       : null;
 
 
@@ -849,7 +1017,7 @@ function calculatePriceSignals(
     typeof currentPrice === "number"
 
       ? prices.filter(
-          (price) =>
+          price =>
             price < currentPrice
         ).length
 
@@ -864,7 +1032,8 @@ function calculatePriceSignals(
           (
             averagePrice -
             currentPrice
-          ) / averagePrice
+          ) /
+          averagePrice
         ) *
         100
 
@@ -880,7 +1049,8 @@ function calculatePriceSignals(
           (
             currentPrice -
             typicalSalePrice
-          ) / typicalSalePrice
+          ) /
+          typicalSalePrice
         ) *
         100
 
@@ -895,25 +1065,55 @@ function calculatePriceSignals(
           (
             currentPrice -
             recentLow
-          ) / recentLow
+          ) /
+          recentLow
         ) *
         100
 
       : null;
 
-      console.log("========== VALHEIM HISTORY DEBUG ==========");
-console.table(
-  validHistory.map(entry => ({
-    date: new Date(entry.timestamp).toISOString().slice(0, 10),
-    price: entry.price,
-    regularPrice: entry.regularPrice,
-    discount: entry.discount
-  }))
-);
-console.log("History count:", validHistory.length);
-console.log("===========================================");
 
-    const priceRegimeChange = detectPriceRegimeChange(validHistory);
+  console.log(
+    "========== VALHEIM HISTORY DEBUG =========="
+  );
+
+  console.table(
+    validHistory.map(entry => ({
+
+      date:
+        new Date(
+          entry.timestamp
+        )
+        .toISOString()
+        .slice(0, 10),
+
+      price:
+        entry.price,
+
+      regularPrice:
+        entry.regularPrice,
+
+      discount:
+        entry.discount
+
+    }))
+  );
+
+  console.log(
+    "History count:",
+    validHistory.length
+  );
+
+  console.log(
+    "==========================================="
+  );
+
+
+  const priceRegimeChange =
+    detectPriceRegimeChange(
+      validHistory
+    );
+
 
   // =======================================================
   // RETURN SIGNALS
@@ -944,6 +1144,8 @@ console.log("===========================================");
     saleIntervals,
 
     averageDaysBetweenSales,
+
+    saleFrequency,
 
     daysSinceLastSale,
 
@@ -1023,454 +1225,555 @@ function formatTimeSince(days) {
 // PRICE VERDICT ENGINE
 // =========================================================
 
-function generatePriceVerdict(signals) {
-  if (!signals) {
-    return null;
-  }
+function generatePriceVerdict(currentPrice, signals = null) {
 
-  const {
-    currentPrice,
-    recentLow,
-    typicalSalePrice,
-    lowestSalePrice,
-    lastSaleLow,
-    daysSinceLastSale,
-    averageDaysBetweenSales,
-    percentAboveRecentLow,
-    priceRegimeChange
-  } = signals;
+    // Support both:
+    // generatePriceVerdict(currentPrice, signals)
+    // and:
+    // generatePriceVerdict(signals)
 
-
-  // ---------------------------------------------------------
-  // HELPERS
-  // ---------------------------------------------------------
-
-  const validNumber = value => {
-    return (
-      typeof value === "number" &&
-      Number.isFinite(value)
-    );
-  };
-
-
-  const money = value => {
-    if (!validNumber(value)) {
-      return null;
+    if (signals === null) {
+        signals = currentPrice;
+        currentPrice = signals?.currentPrice;
     }
 
-    return `£${value.toFixed(2)}`;
-  };
+    const {
+        normalPrice,
+        averagePrice,
+        typicalSalePrice,
+        recentLow,
+        recentLowEntry,
+        timesOnSale,
+        daysSinceLastSale,
+        lastSaleLow,
+        lastSalePeriod,
+        saleFrequency,
+        priceRegimeChange,
+        percentAboveRecentLow,
+        percentBelowAverage,
+        timesBelowCurrentPrice
+    } = signals;
 
+    // ---------------------------------------------------------
+    // HELPERS
+    // ---------------------------------------------------------
 
-  // ---------------------------------------------------------
-  // FREE
-  // ---------------------------------------------------------
+    const validNumber = value =>
+        typeof value === "number" && Number.isFinite(value);
 
-  if (
-    validNumber(currentPrice) &&
-    currentPrice === 0
-  ) {
-    return {
-      verdict: "IT'S FREE",
-      type: "free",
-      confidence: "high",
-      reason: "Always better when it's free."
+    const money = value =>
+        validNumber(value)
+            ? `£${value.toFixed(2)}`
+            : null;
+
+    const formatTimeSince = days => {
+        if (!validNumber(days)) return "a while ago";
+
+        if (days <= 1) return "yesterday";
+        if (days < 7) return `${Math.round(days)} days ago`;
+        if (days < 14) return "just over a week ago";
+        if (days < 30) return `about ${Math.round(days / 7)} weeks ago`;
+        if (days < 60) return "over a month ago";
+
+        return `about ${Math.round(days / 30)} months ago`;
     };
-  }
 
+    // ---------------------------------------------------------
+    // FREE
+    // ---------------------------------------------------------
 
-  // ---------------------------------------------------------
-  // NO CURRENT PRICE
-  // ---------------------------------------------------------
-
-  if (!validNumber(currentPrice)) {
-    return {
-      verdict: "WAIT",
-      type: "wait",
-      confidence: "low",
-      reason:
-        "I couldn't get a reliable current price for this game."
-    };
-  }
-
-  // ---------------------------------------------------------
-  // PRICE REGIME CHANGE
-  //
-  // A recent permanent price change means older historical
-  // prices should be treated with caution.
-  //
-  // We DO NOT immediately return a verdict here.
-  // Instead, we remember that the old history is less relevant
-  // and let the rest of the engine make the decision.
-  // ---------------------------------------------------------
-
-  const hasPriceRegimeChange =
-    priceRegimeChange &&
-    priceRegimeChange.detected;
-
-
-  const priceIncreased =
-    hasPriceRegimeChange &&
-    priceRegimeChange.changePercent > 0;
-
-    console.log("========== PRICE REGIME DEBUG ==========");
-console.log("priceRegimeChange:", priceRegimeChange);
-console.log("hasPriceRegimeChange:", hasPriceRegimeChange);
-console.log("priceIncreased:", priceIncreased);
-console.log("========================================");
-
-
-  const newNormalPrice =
-    hasPriceRegimeChange
-      ? priceRegimeChange.newNormalPrice
-      : null;
-
-
-  const oldNormalPrice =
-    hasPriceRegimeChange
-      ? priceRegimeChange.oldNormalPrice
-      : null;
-
-
-  // ---------------------------------------------------------
-  // PRICE REGIME MESSAGE
-  // ---------------------------------------------------------
-  //
-  // If the game's normal price has increased, we don't want
-  // old sale prices to automatically create a WAIT verdict.
-  //
-  // This flag is used later when constructing the reason.
-  // ---------------------------------------------------------
-
-  const currentPriceMatchesNewNormal =
-    priceIncreased &&
-    validNumber(newNormalPrice) &&
-    currentPrice <=
-      newNormalPrice * 1.05;
-
-
-  // ---------------------------------------------------------
-  // REGIME CHANGE + CURRENT PRICE IS NEW NORMAL
-  //
-  // Example:
-  //
-  // Old normal: £15.49
-  // New normal: £23.49
-  // Current:    £23.49
-  //
-  // Don't compare today's price directly against old £7.74
-  // sales.
-  // ---------------------------------------------------------
-
-  if (
-    currentPriceMatchesNewNormal
-  ) {
-    return {
-      verdict: "WAIT",
-      type: "wait",
-      confidence: "medium",
-      reason:
-        `The game's normal price has recently increased, so older sales aren't a great comparison. I'd wait for a post-change sale if you're not in a rush.`
-    };
-  }
-
-  // ---------------------------------------------------------
-  // BASIC SIGNALS
-  // ---------------------------------------------------------
-
-  const hasTypicalSale =
-    validNumber(typicalSalePrice);
-
-  const hasLastSale =
-    validNumber(lastSaleLow);
-
-  const hasSaleFrequency =
-    validNumber(averageDaysBetweenSales) &&
-    averageDaysBetweenSales > 0;
-
-
-  const timeSinceLastSale =
-    formatTimeSince(daysSinceLastSale);
-
-
-  const lastSaleSaving =
-    hasLastSale &&
-    lastSaleLow < currentPrice
-      ? currentPrice - lastSaleLow
-      : 0;
-
-
-  const lastSaleSavingPercent =
-    currentPrice > 0 &&
-    lastSaleSaving > 0
-      ? (lastSaleSaving / currentPrice) * 100
-      : 0;
-
-
-  // ---------------------------------------------------------
-  // RECENT LOW
-  // ---------------------------------------------------------
-
-  const atRecentLow =
-    validNumber(percentAboveRecentLow) &&
-    percentAboveRecentLow <= 0.01;
-
-
-  if (atRecentLow) {
-    return {
-      verdict: "BUY NOW",
-      type: "historical-low",
-      confidence: "high",
-      reason:
-        "This is the lowest recent price we've seen. I'd buy now."
-    };
-  }
-
-
-  // ---------------------------------------------------------
-  // TYPICAL SALE PRICE
-  // ---------------------------------------------------------
-
-  if (
-    hasTypicalSale &&
-    currentPrice <= typicalSalePrice + 0.01
-  ) {
-    return {
-      verdict: "BUY NOW",
-      type: "historical-low",
-      confidence: "high",
-      reason:
-        `You're at the game's usual sale price of ${money(typicalSalePrice)}. I'd buy now.`
-    };
-  }
-
-
-  // ---------------------------------------------------------
-  // RECENCY
-  // ---------------------------------------------------------
-
-  const lastSaleWasVeryRecent =
-    validNumber(daysSinceLastSale) &&
-    daysSinceLastSale <= 14;
-
-
-  const lastSaleWasRecent =
-    validNumber(daysSinceLastSale) &&
-    daysSinceLastSale <= 30;
-
-
-  const lastSaleWasFairlyRecent =
-    validNumber(daysSinceLastSale) &&
-    daysSinceLastSale <= 60;
-
-
-  // ---------------------------------------------------------
-  // SALE FREQUENCY
-  // ---------------------------------------------------------
-
-  let saleLikelyWorthWaitingFor = false;
-
-  if (
-    hasSaleFrequency &&
-    validNumber(daysSinceLastSale)
-  ) {
-    saleLikelyWorthWaitingFor =
-      daysSinceLastSale <
-      averageDaysBetweenSales;
-  }
-
-
-  // ---------------------------------------------------------
-  // STRONG WAIT
-  // ---------------------------------------------------------
-
-  if (
-    hasLastSale &&
-    lastSaleWasVeryRecent &&
-    lastSaleSaving >= 5 &&
-    lastSaleSavingPercent >= 20
-  ) {
-    return {
-      verdict: "WAIT",
-      type: "wait",
-      confidence: "high",
-      reason:
-        `This was ${money(lastSaleLow)} ${timeSinceLastSale}. I'd wait for another sale and potentially save ${money(lastSaleSaving)}.`
-    };
-  }
-
-
-  // ---------------------------------------------------------
-  // REGULAR SALES + RECENT CHEAPER PRICE
-  // ---------------------------------------------------------
-
-  if (
-    hasLastSale &&
-    hasSaleFrequency &&
-    lastSaleWasRecent &&
-    saleLikelyWorthWaitingFor &&
-    lastSaleSaving >= 5 &&
-    lastSaleSavingPercent >= 20
-  ) {
-    return {
-      verdict: "WAIT",
-      type: "wait",
-      confidence: "high",
-      reason:
-        `This was ${money(lastSaleLow)} ${timeSinceLastSale}, and this game usually goes on sale regularly. I'd wait and potentially save ${money(lastSaleSaving)}.`
-    };
-  }
-
-
-  // ---------------------------------------------------------
-  // FAIRLY RECENT SALE + LARGE SAVING
-  // ---------------------------------------------------------
-
-  if (
-    hasLastSale &&
-    lastSaleWasFairlyRecent &&
-    lastSaleSaving >= 10 &&
-    lastSaleSavingPercent >= 25 &&
-    hasSaleFrequency &&
-    saleLikelyWorthWaitingFor
-  ) {
-    return {
-      verdict: "WAIT",
-      type: "wait",
-      confidence: "medium",
-      reason:
-        `The last sale was ${money(lastSaleLow)} ${timeSinceLastSale}, and this game tends to go on sale regularly. I'd wait and potentially save ${money(lastSaleSaving)}.`
-    };
-  }
-
-
-  // ---------------------------------------------------------
-  // RECENT SALE + LARGE RELATIVE SAVING
-  // ---------------------------------------------------------
-
-  if (
-    hasLastSale &&
-    lastSaleWasRecent &&
-    lastSaleSavingPercent >= 35
-  ) {
-    return {
-      verdict: "WAIT",
-      type: "wait",
-      confidence: "high",
-      reason:
-        `This was ${money(lastSaleLow)} ${timeSinceLastSale}. That's a significant difference, so I'd wait for the next sale.`
-    };
-  }
-
-
-  // ---------------------------------------------------------
-  // SIGNIFICANTLY ABOVE TYPICAL SALE
-  // ---------------------------------------------------------
-
-  if (
-    hasTypicalSale &&
-    typicalSalePrice > 0
-  ) {
-    const aboveTypicalPercent =
-      ((currentPrice - typicalSalePrice) /
-        typicalSalePrice) * 100;
-
-
-    const typicalSaleSaving =
-      currentPrice - typicalSalePrice;
-
-
-    if (
-      aboveTypicalPercent >= 50 &&
-      typicalSaleSaving >= 10
-    ) {
-      if (
-        hasLastSale &&
-        timeSinceLastSale
-      ) {
+    if (currentPrice === 0) {
         return {
-          verdict: "WAIT",
-          type: "wait",
-          confidence: "medium",
-          reason:
-            `This is ${money(typicalSaleSaving)} above the game's usual sale price. It was ${money(lastSaleLow)} ${timeSinceLastSale}, so I'd wait for a better price.`
+            verdict: "IT'S FREE",
+            type: "free",
+            confidence: "high",
+            reason:
+                "The game is currently free, so there's no reason to wait."
         };
-      }
-
-
-      return {
-        verdict: "WAIT",
-        type: "wait",
-        confidence: "medium",
-        reason:
-          `You're paying ${money(typicalSaleSaving)} more than the game's usual sale price. I'd wait for a discount.`
-      };
     }
-  }
 
+    // ---------------------------------------------------------
+    // NO CURRENT PRICE
+    // ---------------------------------------------------------
 
-  // ---------------------------------------------------------
-  // CHEAPER HISTORY, BUT NOT ENOUGH REASON TO WAIT
-  // ---------------------------------------------------------
+    if (!validNumber(currentPrice)) {
+        return {
+            verdict: "FAIR PRICE",
+            type: "fair",
+            confidence: "low",
+            reason:
+                "I can't reliably compare the current price with the game's history, so I'd wait until the price data is available."
+        };
+    }
 
-  if (
-    hasLastSale &&
-    lastSaleSaving > 0
-  ) {
+    // ---------------------------------------------------------
+    // PRICE REGIME CHANGE
+    // ---------------------------------------------------------
+
     if (
-      lastSaleSaving < 5 ||
-      lastSaleSavingPercent < 20 ||
-      !lastSaleWasRecent
+        priceRegimeChange &&
+        validNumber(priceRegimeChange.changePercent)
     ) {
-      return {
-        verdict: "GOOD TIME",
-        type: "good",
-        confidence: "medium",
-        reason:
-          timeSinceLastSale
-            ? `The last sale was ${money(lastSaleLow)} ${timeSinceLastSale}, but the saving isn't large enough to make waiting essential.`
-            : `A cheaper sale has happened before, but the saving isn't large enough to make waiting essential.`
-      };
+        const change = priceRegimeChange.changePercent;
+
+        if (change >= 15) {
+            return {
+                verdict: "WAIT",
+                type: "wait",
+                confidence: "high",
+                reason:
+                    `The game's normal price has increased from ${money(priceRegimeChange.oldNormalPrice)} to ${money(priceRegimeChange.newNormalPrice)}. ` +
+                    `I'd wait for a sale rather than buying at the new higher price.`
+            };
+        }
     }
-  }
 
+    // ---------------------------------------------------------
+    // SIGNALS
+    // ---------------------------------------------------------
 
-  // ---------------------------------------------------------
-  // SLIGHTLY ABOVE TYPICAL SALE
-  // ---------------------------------------------------------
+    const hasTypicalSale =
+        validNumber(typicalSalePrice) &&
+        typicalSalePrice > 0;
 
-  if (
-    hasTypicalSale &&
-    currentPrice > typicalSalePrice
-  ) {
-    const difference =
-      currentPrice - typicalSalePrice;
+    const hasNormalPrice =
+        validNumber(normalPrice) &&
+        normalPrice > 0;
 
+    const hasRecentLow =
+        validNumber(recentLow) &&
+        recentLow > 0;
+
+    const hasLastSale =
+        validNumber(lastSaleLow) &&
+        lastSaleLow > 0;
+
+    const hasDaysSinceLastSale =
+        validNumber(daysSinceLastSale);
+
+    const recentLowWasSale =
+        recentLowEntry &&
+        validNumber(recentLowEntry.discount) &&
+        recentLowEntry.discount > 0;
+
+    const atRecentLow =
+        hasRecentLow &&
+        validNumber(percentAboveRecentLow) &&
+        percentAboveRecentLow <= 0.01;
+
+    const atGenuineRecentSaleLow =
+        atRecentLow &&
+        recentLowWasSale;
+
+    // ---------------------------------------------------------
+    // CURRENT VS NORMAL
+    // ---------------------------------------------------------
+
+    const currentBelowNormal =
+        hasNormalPrice &&
+        currentPrice < normalPrice;
+
+    const normalPriceSaving =
+        currentBelowNormal
+            ? normalPrice - currentPrice
+            : 0;
+
+    const normalPriceSavingPercent =
+        currentBelowNormal
+            ? (normalPriceSaving / normalPrice) * 100
+            : 0;
+
+    // ---------------------------------------------------------
+    // CURRENT VS TYPICAL SALE
+    // ---------------------------------------------------------
+
+    const potentialSaving =
+        hasTypicalSale &&
+        currentPrice > typicalSalePrice
+            ? currentPrice - typicalSalePrice
+            : 0;
+
+    const potentialSavingPercent =
+        hasTypicalSale &&
+        currentPrice > 0
+            ? (potentialSaving / currentPrice) * 100
+            : 0;
+
+    const salePremiumPercent =
+        hasTypicalSale &&
+        typicalSalePrice > 0
+            ? ((currentPrice - typicalSalePrice) / typicalSalePrice) * 100
+            : null;
+
+    // ---------------------------------------------------------
+    // RECENCY
+    // ---------------------------------------------------------
+
+    const lastSaleVeryRecent =
+        hasDaysSinceLastSale &&
+        daysSinceLastSale <= 30;
+
+    const lastSaleRecent =
+        hasDaysSinceLastSale &&
+        daysSinceLastSale <= 90;
+
+    const lastSaleOld =
+        hasDaysSinceLastSale &&
+        daysSinceLastSale > 90;
+
+    // =========================================================
+    // 1. BUY NOW
+    // Genuine recent sale low
+    // =========================================================
+
+    if (atGenuineRecentSaleLow) {
+        return {
+            verdict: "BUY NOW",
+            type: "historical-low",
+            confidence: "high",
+            reason:
+                `You're currently at ${money(currentPrice)}, matching the lowest recent sale price we've seen. ` +
+                `This is a genuine sale low, so I'd buy it now rather than waiting.`
+        };
+    }
+
+    // =========================================================
+    // 2. BUY NOW
+    // At or below typical sale price
+    // =========================================================
+
+    if (
+        hasTypicalSale &&
+        currentPrice <= typicalSalePrice
+    ) {
+        return {
+            verdict: "BUY NOW",
+            type: "historical-low",
+            confidence: "high",
+            reason:
+                `You're paying ${money(currentPrice)}, which is at or below the game's typical sale price of ${money(typicalSalePrice)}. ` +
+                `That's a strong buying opportunity, so I'd buy it now.`
+        };
+    }
+
+    // =========================================================
+    // 3. FAIR PRICE
+    // Current price is the recent low, but the low wasn't
+    // actually a sale.
+    // =========================================================
+
+    if (
+        atRecentLow &&
+        !recentLowWasSale &&
+        (
+            !hasDaysSinceLastSale ||
+            daysSinceLastSale > 90
+        )
+    ) {
+        return {
+            verdict: "FAIR PRICE",
+            type: "fair",
+            confidence: "medium",
+            reason:
+                `The current price of ${money(currentPrice)} is the lowest we've seen recently, but that price isn't coming from a recent sale. ` +
+                `I'd consider this a fair price if you want the game now, rather than waiting indefinitely for a discount.`
+        };
+    }
+
+    // =========================================================
+    // 4. STRONG WAIT
+    //
+    // A VERY large saving can justify waiting even when the
+    // last sale wasn't recent.
+    //
+    // £60 current / £30 typical = £30 saving
+    // £50 current / £20 typical = £30 saving
+    //
+    // This is different from simply saying "2x the sale price".
+    // We're looking at the actual money the user could save.
+    // =========================================================
+
+    if (
+        hasTypicalSale &&
+        potentialSaving >= 20
+    ) {
+        return {
+            verdict: "WAIT",
+            type: "wait",
+            confidence: "high",
+            reason:
+                `The game usually drops to around ${money(typicalSalePrice)} during sales, but it's currently ${money(currentPrice)}. ` +
+                `You could save around ${money(potentialSaving)} by waiting. I'd wait for a sale.`
+        };
+    }
+
+    // =========================================================
+    // 5. WAIT
+    //
+    // A meaningful saving combined with a RECENT sale is strong
+    // evidence that waiting is worthwhile.
+    // =========================================================
+
+    if (
+        hasTypicalSale &&
+        lastSaleRecent &&
+        potentialSaving >= 10
+    ) {
+        return {
+            verdict: "WAIT",
+            type: "wait",
+            confidence: "high",
+            reason:
+                `The game was around ${money(typicalSalePrice)} during its recent sale ${formatTimeSince(daysSinceLastSale)}. ` +
+                `You could save about ${money(potentialSaving)} by waiting for another one. I'd wait.`
+        };
+    }
+
+    // =========================================================
+    // 6. WAIT
+    //
+    // Very recent sale + meaningful percentage saving.
+    //
+    // Example:
+    // £40 current
+    // £30 sale
+    // £10 saving / 25%
+    //
+    // Recent enough to make waiting worthwhile.
+    // =========================================================
+
+    if (
+        hasTypicalSale &&
+        lastSaleVeryRecent &&
+        potentialSaving >= 7.50 &&
+        potentialSavingPercent >= 20
+    ) {
+        return {
+            verdict: "WAIT",
+            type: "wait",
+            confidence: "high",
+            reason:
+                `The game was around ${money(typicalSalePrice)} ${formatTimeSince(daysSinceLastSale)}, and it's ${money(currentPrice)} today. ` +
+                `That's ${money(potentialSaving)} more than its recent sale price. I'd wait for another sale.`
+        };
+    }
+
+    // =========================================================
+    // 7. GOOD PRICE
+    // Meaningfully below normal price
+    // =========================================================
+
+    if (
+        currentBelowNormal &&
+        normalPriceSaving >= 5 &&
+        normalPriceSavingPercent >= 10
+    ) {
+        return {
+            verdict: "GOOD PRICE",
+            type: "good",
+            confidence: "medium",
+            reason:
+                `You're paying ${money(normalPriceSaving)} less than the game's normal price of ${money(normalPrice)}. ` +
+                `It isn't necessarily the lowest price we've seen, but this is still a good price to buy at.`
+        };
+    }
+
+    // =========================================================
+    // 8. GOOD PRICE
+    // Rarely on sale + currently below normal
+    // =========================================================
+
+    if (
+        saleFrequency?.classification === "rare" &&
+        currentBelowNormal &&
+        normalPriceSaving >= 3 &&
+        normalPriceSavingPercent >= 7
+    ) {
+        return {
+            verdict: "GOOD PRICE",
+            type: "good",
+            confidence: "medium",
+            reason:
+                `This game doesn't go on sale very often, and you're currently paying ${money(normalPriceSaving)} less than its normal price. ` +
+                `I'd be comfortable buying it at this price rather than waiting indefinitely for a sale.`
+        };
+    }
+
+    // =========================================================
+    // 9. GOOD PRICE
+    // Recent sale, but the potential saving is too small to
+    // strongly recommend waiting.
+    // =========================================================
+
+    if (
+        hasLastSale &&
+        lastSaleRecent &&
+        currentPrice > lastSaleLow
+    ) {
+        const saving =
+            currentPrice - lastSaleLow;
+
+        const savingPercent =
+            (saving / currentPrice) * 100;
+
+        if (
+            savingPercent < 20 ||
+            (saving < 10 && savingPercent < 25)
+        ) {
+            return {
+                verdict: "GOOD PRICE",
+                type: "good",
+                confidence: "medium",
+                reason:
+                    `The game was ${money(lastSaleLow)} ${formatTimeSince(daysSinceLastSale)}, so it has been a little cheaper recently. ` +
+                    `The difference is small enough that I'd be comfortable buying at ${money(currentPrice)}.`
+            };
+        }
+    }
+
+    // =========================================================
+    // 10. FAIR PRICE
+    //
+    // This is now the important middle ground.
+    //
+    // If the game is more expensive than its typical sale,
+    // but the actual saving isn't significant enough to tell
+    // someone to wait, we call it FAIR PRICE.
+    // =========================================================
+
+    if (
+        hasTypicalSale &&
+        potentialSaving > 0
+    ) {
+        // Small saving
+        if (potentialSaving < 10) {
+            return {
+                verdict: "FAIR PRICE",
+                type: "fair",
+                confidence: "medium",
+                reason:
+                    `The game last dropped to ${money(typicalSalePrice)} ${hasDaysSinceLastSale ? formatTimeSince(daysSinceLastSale) : "during a sale"}. ` +
+                    `You could save ${money(potentialSaving)} by waiting, but that's not enough for me to strongly recommend holding off. ` +
+                    `I'd consider ${money(currentPrice)} a fair price if you want to play it now.`
+            };
+        }
+
+        // £10–£20 saving, but the sale is old and there is
+        // no strong evidence that waiting is worthwhile.
+        if (
+            potentialSaving < 20 &&
+            lastSaleOld
+        ) {
+            return {
+                verdict: "FAIR PRICE",
+                type: "fair",
+                confidence: "medium",
+                reason:
+                    `The game has been as low as ${money(typicalSalePrice)}, but that sale was ${formatTimeSince(daysSinceLastSale)}. ` +
+                    `You could save ${money(potentialSaving)} by waiting, but there's no strong indication of when the next sale will arrive. ` +
+                    `I'd consider ${money(currentPrice)} a fair price if you want it now.`
+            };
+        }
+    }
+
+    // =========================================================
+    // 11. FAIR PRICE
+    // Current price is close to typical sale price
+    // =========================================================
+
+    if (
+        hasTypicalSale &&
+        salePremiumPercent < 25
+    ) {
+        const difference =
+            Math.max(0, currentPrice - typicalSalePrice);
+
+        return {
+            verdict: "FAIR PRICE",
+            type: "fair",
+            confidence: "medium",
+            reason:
+                `The game usually drops to around ${money(typicalSalePrice)} during sales, and it's currently ${money(currentPrice)}. ` +
+                `The difference isn't large enough to make waiting an obvious choice, so I'd consider this a fair price to buy at.`
+        };
+    }
+
+    // =========================================================
+    // 12. FAIR PRICE
+    // Normal price with no meaningful sale history
+    // =========================================================
+
+    if (
+        hasNormalPrice &&
+        Math.abs(currentPrice - normalPrice) < 0.01 &&
+        !hasTypicalSale
+    ) {
+        return {
+            verdict: "FAIR PRICE",
+            type: "fair",
+            confidence: "medium",
+            reason:
+                `The game is currently at its normal price of ${money(currentPrice)}. ` +
+                `There isn't a meaningful sale price to chase, so I'd consider this a fair price if you want to play it now.`
+        };
+    }
+
+    // =========================================================
+    // 13. GOOD PRICE
+    // Slightly above typical sale price
+    // =========================================================
+
+    if (
+        hasTypicalSale &&
+        currentPrice > typicalSalePrice
+    ) {
+        const difference =
+            currentPrice - typicalSalePrice;
+
+        if (difference <= 2) {
+            return {
+                verdict: "GOOD PRICE",
+                type: "good",
+                confidence: "medium",
+                reason:
+                    `The game usually drops to around ${money(typicalSalePrice)} during sales, and you're only ${money(difference)} above that today. ` +
+                    `I'd be comfortable buying at this price rather than waiting for a small saving.`
+            };
+        }
+    }
+
+    // =========================================================
+    // 14. FAIR PRICE
+    // Close to normal price
+    // =========================================================
+
+    if (
+        hasNormalPrice &&
+        currentPrice <= normalPrice * 1.10
+    ) {
+        return {
+            verdict: "FAIR PRICE",
+            type: "fair",
+            confidence: "medium",
+            reason:
+                `The current price of ${money(currentPrice)} is close to the game's normal price of ${money(normalPrice)}. ` +
+                `It's not a standout deal, but I'd consider it a fair price if you want to play it now.`
+        };
+    }
+
+    // =========================================================
+    // 15. FINAL FALLBACK
+    // =========================================================
 
     return {
-      verdict: "GOOD TIME",
-      type: "good",
-      confidence: "medium",
-      reason:
-        `You're only ${money(difference)} above the game's usual sale price. It's a reasonable time to buy.`
+        verdict: "FAIR PRICE",
+        type: "fair",
+        confidence: "medium",
+        reason:
+            `At ${money(currentPrice)}, this looks like a reasonable price based on the game's available price history. ` +
+            `I'd consider buying if you want to play it now rather than waiting for an uncertain discount.`
     };
-  }
-
-
-  // ---------------------------------------------------------
-  // FALLBACK
-  // ---------------------------------------------------------
-
-  return {
-    verdict: "GOOD TIME",
-    type: "good",
-    confidence: "medium",
-    reason:
-      "This looks like a reasonable price for this game."
-  };
 }
-
-
 
 
 // =========================================================
@@ -1553,7 +1856,7 @@ app.get(
 
       const steamLow =
         historyLowData?.[0]?.lows?.find(
-          (low) =>
+          low =>
             low.shop.id === 61
         );
 
@@ -1582,7 +1885,7 @@ app.get(
         )
 
           ? historyData.filter(
-              (entry) =>
+              entry =>
                 entry.shop.id === 61
             )
 
@@ -1595,7 +1898,7 @@ app.get(
 
       const priceHistory =
         steamHistory.map(
-          (entry) => ({
+          entry => ({
 
             timestamp:
               entry.timestamp,
@@ -1619,21 +1922,12 @@ app.get(
       // ===================================================
       // TEMPORARY CURRENT PRICE
       // ===================================================
-      //
-      // IMPORTANT:
-      // ITAD history is sorted newest-first in the
-      // response, but we explicitly find the newest
-      // timestamp rather than relying on array order.
-      //
-      // This will later be replaced by the live Steam
-      // price supplied by content.js.
-      // ===================================================
 
       const newestHistoryEntry =
         [...priceHistory]
 
           .filter(
-            (entry) =>
+            entry =>
               typeof entry.price === "number" &&
               Number.isFinite(entry.price)
           )

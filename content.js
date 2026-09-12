@@ -451,63 +451,56 @@ if (!gamePageMatch) {
         }
 
         /* ---------------------------------------------------
-           VERDICT COLOURS
-        --------------------------------------------------- */
+            VERDICT COLOURS
+          --------------------------------------------------- */
 
-        .panel[data-type="historical-low"] .decision-marker {
-          background: #8ee6ad;
+          .panel[data-type="historical-low"] .decision-marker {
+            background: #8ee6ad;
+            box-shadow:
+              0 0 16px rgba(142, 230, 173, .3);
+          }
 
-          box-shadow:
-            0 0 16px rgba(142, 230, 173, .3);
-        }
+          .panel[data-type="historical-low"]
+          .chart-row.current
+          .chart-fill,
+          .panel[data-type="historical-low"]
+          .chart-marker {
+            background: #8ee6ad;
+          }
 
-        .panel[data-type="historical-low"]
-        .chart-row.current
-        .chart-fill,
+          .panel[data-type="good"] .decision-marker {
+            background: #f4c95d;
+            box-shadow:
+              0 0 16px rgba(244, 201, 93, .25);
+          }
 
-        .panel[data-type="historical-low"]
-        .chart-marker {
-          background: #8ee6ad;
-        }
+          .panel[data-type="good"]
+          .chart-row.current
+          .chart-fill,
+          .panel[data-type="good"]
+          .chart-marker {
+            background: #f4c95d;
+          }
 
-        .panel[data-type="good"] .decision-marker {
-          background: #f4c95d;
+          .panel[data-type="wait"] .decision-marker {
+            background: #af1c1c;
+            box-shadow:
+              0 0 16px rgba(229, 164, 90, .25);
+          }
 
-          box-shadow:
-            0 0 16px rgba(244, 201, 93, .25);
-        }
+          .panel[data-type="wait"]
+          .chart-row.current
+          .chart-fill,
+          .panel[data-type="wait"]
+          .chart-marker {
+            background: #af1c1c;
+          }
 
-        .panel[data-type="good"]
-        .chart-row.current
-        .chart-fill,
-
-        .panel[data-type="good"]
-        .chart-marker {
-          background: #f4c95d;
-        }
-
-        .panel[data-type="wait"] .decision-marker {
-          background: #e5a45a;
-
-          box-shadow:
-            0 0 16px rgba(229, 164, 90, .25);
-        }
-
-        .panel[data-type="wait"]
-        .chart-row.current
-        .chart-fill,
-
-        .panel[data-type="wait"]
-        .chart-marker {
-          background: #e5a45a;
-        }
-
-        .panel[data-type="free"] .decision-marker {
-          background: #8ee6ad;
-
-          box-shadow:
-            0 0 16px rgba(142, 230, 173, .3);
-        }
+          .panel[data-type="free"] .decision-marker {
+            background: #8ee6ad;
+            box-shadow:
+              0 0 16px rgba(142, 230, 173, .3);
+          }
 
         /* Free games do not need the analysis link */
 
@@ -826,7 +819,7 @@ if (!gamePageMatch) {
                 </span>
 
                 <span class="chart-note">
-                  Recent low
+                  3 Month low
                 </span>
 
               </div>
