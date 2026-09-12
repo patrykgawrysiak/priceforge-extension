@@ -1405,6 +1405,15 @@ function generatePriceVerdict(currentPrice, signals = null) {
             ? ((currentPrice - typicalSalePrice) / typicalSalePrice) * 100
             : null;
 
+    const saleSavingPercentOfCurrent =
+    hasTypicalSale && currentPrice > 0
+        ? ((currentPrice - typicalSalePrice) / currentPrice) * 100
+        : 0;
+
+    const salesAreFrequent =
+        saleFrequency?.classification === "very-frequent" ||
+        saleFrequency?.classification === "frequent";
+
     // ---------------------------------------------------------
     // RECENCY
     // ---------------------------------------------------------
@@ -1453,6 +1462,38 @@ function generatePriceVerdict(currentPrice, signals = null) {
             reason:
                 `You're paying ${money(currentPrice)}, which is at or below the game's typical sale price of ${money(typicalSalePrice)}. ` +
                 `That's a strong buying opportunity, so I'd buy it now.`
+        };
+    }
+
+    // ---------------------------------------------------------
+    // FREQUENT SALES + LARGE SAVING
+    // ---------------------------------------------------------
+    // If the game regularly goes much cheaper, there is little
+    // reason to pay today's price and hope for another sale.
+    //
+    // Example:
+    // Current: £4.79
+    // Typical sale: £0.62
+    // Saving: £4.17 / ~87%
+    // Sales: frequent
+    //
+    // → WAIT
+    // ---------------------------------------------------------
+
+    if (
+        hasTypicalSale &&
+        currentPrice > typicalSalePrice &&
+        salesAreFrequent &&
+        saleSavingPercentOfCurrent >= 50
+    ) {
+        return {
+            verdict: "WAIT",
+            type: "wait",
+            confidence: "high",
+            reason:
+                `This game regularly drops to around ${money(typicalSalePrice)}, compared with ${money(currentPrice)} today. ` +
+                `That's a saving of ${money(potentialSaving)}, or around ${Math.round(saleSavingPercentOfCurrent)}% off the current price. ` +
+                `Because sales happen frequently, I'd wait for the next one.`
         };
     }
 
