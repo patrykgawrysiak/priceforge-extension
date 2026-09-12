@@ -336,6 +336,102 @@ if (!gamePageMatch) {
         }
 
         /* ---------------------------------------------------
+          KEY PRICE CHECK
+        --------------------------------------------------- */
+
+        .key-check-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+          margin-top: 2px;
+          margin-bottom: 12px;
+          padding: 5px 0 3px;
+          color: #8f98a0;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: .13em;
+          text-align: left;
+          text-transform: uppercase;
+        }
+
+        .key-check-toggle:hover {
+          color: #d6d7d8;
+        }
+
+        .key-check-toggle-arrow {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 16px;
+          height: 16px;
+          color: #7c9a9e;
+          font-size: 15px;
+          line-height: 1;
+        }
+
+        .key-check-toggle:hover .key-check-toggle-arrow {
+          color: #66c0f4;
+        }
+
+        /* ---------------------------------------------------
+          KEY CHECK RESULT
+        --------------------------------------------------- */
+
+        .key-check {
+          display: none;
+          margin: 3px 0 12px;
+          padding: 11px 12px;
+          background: #1c252e;
+          border: 1px solid rgba(102, 192, 244, .25);
+          border-radius: 8px;
+        }
+
+        .key-check.is-open {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .key-check-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex: 0 0 auto;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          color: #15191f;
+          background: #8ee6ad;
+          font-size: 13px;
+          font-weight: 900;
+          line-height: 1;
+        }
+
+        .key-check-content {
+          min-width: 0;
+        }
+
+        .key-check-title {
+          margin-bottom: 3px;
+          color: #f5f5f5;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: .04em;
+          text-transform: uppercase;
+        }
+
+        .key-check-text {
+          color: #9da6ad;
+          font-size: 10px;
+          line-height: 1.5;
+        }
+
+        /* ---------------------------------------------------
            PRICE ANALYSIS
         --------------------------------------------------- */
 
@@ -468,16 +564,16 @@ if (!gamePageMatch) {
             background: #8ee6ad;
           }
 
-          .panel[data-type="good"] .decision-marker {
+          .panel[data-type="fair"] .decision-marker {
             background: #f4c95d;
             box-shadow:
               0 0 16px rgba(244, 201, 93, .25);
           }
 
-          .panel[data-type="good"]
+          .panel[data-type="fair"]
           .chart-row.current
           .chart-fill,
-          .panel[data-type="good"]
+          .panel[data-type="fair"]
           .chart-marker {
             background: #f4c95d;
           }
@@ -722,6 +818,40 @@ if (!gamePageMatch) {
 
           </button>
 
+          <!-- KEY PRICE CHECK -->
+
+          <button
+            class="key-check-toggle"
+            type="button"
+            aria-expanded="false"
+          >
+            <span>
+              Is a key cheaper?
+            </span>
+
+            <span
+              class="key-check-toggle-arrow"
+              aria-hidden="true"
+            >›</span>
+          </button>
+
+          <div
+            class="key-check"
+            aria-hidden="true"
+          >
+            <div class="key-check-icon">✓</div>
+
+            <div class="key-check-content">
+              <div class="key-check-title">
+                Keys are cheaper
+              </div>
+
+              <div class="key-check-text">
+                An external game key is currently cheaper than Steam.
+              </div>
+            </div>
+          </div>
+
           <!-- PRICE ANALYSIS -->
 
           <div
@@ -875,6 +1005,21 @@ if (!gamePageMatch) {
         ".analysis-toggle-arrow"
       );
 
+      const keyCheckToggle =
+    shadowRoot.querySelector(
+      ".key-check-toggle"
+    );
+
+  const keyCheck =
+    shadowRoot.querySelector(
+      ".key-check"
+    );
+
+  const keyCheckToggleArrow =
+    shadowRoot.querySelector(
+      ".key-check-toggle-arrow"
+    );
+
     // ---------------------------------------------------------
     // CLOSE
     // ---------------------------------------------------------
@@ -959,6 +1104,36 @@ if (!gamePageMatch) {
             : "›";
       }
     );
+
+    // ---------------------------------------------------------
+// IS A KEY CHEAPER?
+// ---------------------------------------------------------
+
+keyCheckToggle.addEventListener(
+  "click",
+  () => {
+
+    const isOpen =
+      keyCheck.classList.toggle(
+        "is-open"
+      );
+
+    keyCheckToggle.setAttribute(
+      "aria-expanded",
+      String(isOpen)
+    );
+
+    keyCheck.setAttribute(
+      "aria-hidden",
+      String(!isOpen)
+    );
+
+    keyCheckToggleArrow.textContent =
+      isOpen
+        ? "⌃"
+        : "›";
+  }
+);
 
     // ---------------------------------------------------------
     // ADD TO PAGE
