@@ -1,3 +1,4 @@
+
 // ---------------------------------------------------------
 // PRICEFORGE — ONLY RUN ON STEAM GAME PAGES
 // ---------------------------------------------------------
@@ -9,340 +10,1308 @@ const gamePageMatch = window.location.pathname.match(
 if (!gamePageMatch) {
   console.log("PriceForge: Not a Steam game page.");
 } else {
-
   const appId = gamePageMatch[1];
 
   // ---------------------------------------------------------
   // EXISTING PRICEFORGE CODE
   // ---------------------------------------------------------
 
-if (!document.getElementById("priceforge-root")) {
+  if (!document.getElementById("priceforge-root")) {
+    const purchaseArea = document.querySelector("#game_area_purchase");
 
-  const purchaseArea = document.querySelector("#game_area_purchase");
-  const readText = (selector, fallback = null) => {
-    const element = purchaseArea?.querySelector(selector);
-    return element ? element.textContent.trim() : fallback;
-  };
-
-  const currentPrice = readText(".discount_final_price, .game_purchase_price", "Price unavailable");
-  const discount = readText(".discount_pct");
-
-  const priceforge = document.createElement("aside");
-  priceforge.id = "priceforge-root";
-  priceforge.setAttribute("aria-label", "PriceForge price summary");
-  const shadowRoot = priceforge.attachShadow({ mode: "open" });
-
-  shadowRoot.innerHTML = `
-    <style>
-      :host { all: initial; }
-      .panel {
-        position: fixed;
-        right: 24px;
-        bottom: 24px;
-        width: min(320px, calc(100vw - 32px));
-        box-sizing: border-box;
-        overflow: hidden;
-        color: #d6d7d8;
-        background: #15191f;
-        border: 1px solid #303944;
-        border-radius: 12px;
-        box-shadow: 0 20px 54px rgba(0, 0, 0, .48), 0 0 28px rgba(102, 192, 244, .1);
-        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-        letter-spacing: 0;
-        z-index: 999999;
-        animation: rise .4s cubic-bezier(.2, .8, .2, 1) both;
-      }
-      .topbar { display: flex; align-items: center; justify-content: flex-end; padding: 10px 12px; border-bottom: 1px solid #303944; }
-      .brand { display: none; }
-      .mark { display: none; }
-      .header-actions { display: flex; align-items: center; gap: 3px; }
-      .header-button { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid transparent; border-radius: 6px; color: #7c9a9e; background: transparent; cursor: pointer; font-size: 15px; line-height: 1; }
-      .header-button:hover { color: #d6d7d8; background: rgba(102, 192, 244, .1); border-color: #3c5263; }
-      .close { font-size: 18px; }
-      .collapsed-verdict-icon { display: none; place-items: center; width: 23px; height: 23px; margin-left: auto; margin-right: 7px; color: #102020; background: #66c0f4; border-radius: 7px; box-shadow: 0 0 13px rgba(102, 192, 244, .25); font-size: 12px; font-weight: 700; }
-      .content { padding: 19px 20px 20px; }
-      .decision { display: grid; grid-template-columns: 9px 1fr; gap: 13px; align-items: center; margin-bottom: 20px; }
-      .decision-marker { width: 9px; height: 48px; border-radius: 3px; background: #66c0f4; box-shadow: 0 0 16px rgba(102, 192, 244, .3); }
-      .decision-label { margin-bottom: 3px; color: #8f98a0; font-size: 9px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
-      .decision-name { color: #f5f5f5; font-size: 27px; font-weight: 800; letter-spacing: .02em; line-height: 1; }
-      .confidence { margin-top: 6px; color: #9bb4c5; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-      .analysis { padding-top: 17px; border-top: 1px solid #303944; }
-      .section-label { margin-bottom: 15px; color: #8f98a0; font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
-      .price-chart { display: grid; gap: 13px; }
-      .chart-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) 68px; gap: 8px; align-items: center; min-height: 18px; color: #d6d7d8; font-size: 11px; }
-      .chart-price { font-variant-numeric: tabular-nums; }
-      .chart-track { position: relative; width: 100%; height: 5px; overflow: visible; background: #303944; border-radius: 3px; }
-      .chart-fill { display: block; height: 100%; min-width: 5px; background: #506575; border-radius: 3px; }
-      .chart-row.current .chart-fill { background: #66c0f4; }
-      .chart-marker { position: absolute; top: 50%; left: var(--marker-position, 100%); width: 12px; height: 12px; border: 2px solid #15191f; border-radius: 50%; background: #66c0f4; box-shadow: 0 0 0 1px #66c0f4, 0 0 12px rgba(102, 192, 244, .42); transform: translate(-50%, -50%); }
-      .chart-note { color: #8f98a0; font-size: 10px; white-space: nowrap; }
-      .verdict { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 10px; align-items: start; margin-top: 20px; padding-top: 17px; border-top: 1px solid #303944; }
-      .verdict-speaker { display: block; width: 56px; height: 56px; overflow: hidden; }
-      .verdict-speaker img { display: block; width: 100%; height: 100%; object-fit: contain; }
-      .speech { position: relative; padding: 10px 11px; color: #d6d7d8; background: #1c252e; border: 1px solid #3a4a58; border-radius: 4px 10px 10px 10px; font-size: 11px; line-height: 1.55; }
-      .speech::before { position: absolute; top: 20px; left: -6px; width: 10px; height: 10px; content: ""; background: #1c252e; border-bottom: 1px solid #3a4a58; border-left: 1px solid #3a4a58; transform: rotate(45deg); }
-      .verdict-icon, .verdict-label { display: none; }
-      .panel[data-type="historical-low"] .decision-marker { background: #8ee6ad; }
-      .panel[data-type="historical-low"] .chart-row.current .chart-fill, .panel[data-type="historical-low"] .chart-marker { background: #8ee6ad; }
-      .panel[data-type="good"] .decision-marker { background: #f4c95d; }
-      .panel[data-type="good"] .chart-row.current .chart-fill, .panel[data-type="good"] .chart-marker { background: #f4c95d; }
-      .panel[data-type="wait"] .decision-marker { background: #e5a45a; }
-      .panel[data-type="wait"] .chart-row.current .chart-fill, .panel[data-type="wait"] .chart-marker { background: #e5a45a; }
-      .panel.is-collapsed { width: max-content; min-width: 164px; }
-      .panel.is-collapsed .topbar { border-bottom-color: transparent; }
-      .panel.is-collapsed .content,
-      .panel.is-collapsed .verdict { display: none; }
-      .panel.is-collapsed .brand { padding-right: 4px; }
-      .panel.is-collapsed .collapsed-verdict-icon { display: grid; }
-      .panel[data-type="historical-low"].is-collapsed .collapsed-verdict-icon { background: #8ee6ad; }
-      .panel[data-type="good"].is-collapsed .collapsed-verdict-icon { color: #30280d; background: #f4c95d; }
-      .panel[data-type="wait"].is-collapsed .collapsed-verdict-icon { color: #30200f; background: #e5a45a; }
-      @keyframes rise { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-      @media (max-width: 480px) { .panel { right: 16px; bottom: 16px; } }
-      @media (prefers-reduced-motion: reduce) { .panel { animation: none; } }
-    </style>
-    <section class="panel">
-      <header class="topbar">
-        <div class="brand"><span class="mark">⚒</span> PriceForge</div>
-        <span class="collapsed-verdict-icon" aria-label="Current PriceForge verdict" title="Current PriceForge verdict">◆</span>
-        <div class="header-actions">
-          <button class="header-button collapse" type="button" aria-label="Collapse PriceForge" aria-expanded="true" title="Collapse PriceForge">−</button>
-          <button class="header-button close" type="button" aria-label="Close PriceForge" title="Close PriceForge">&times;</button>
-        </div>
-      </header>
-      <div class="content">
-        <div class="decision">
-          <span class="decision-marker" aria-hidden="true"></span>
-          <div><div class="decision-label">PriceForge verdict</div><div class="decision-name">Analysing...</div><div class="confidence">Checking confidence</div></div>
-        </div>
-        <div class="analysis">
-          <div class="section-label">Price position</div>
-          <div class="price-chart">
-            <div class="chart-row" data-chart="average"><span class="chart-price">--</span><span class="chart-track"><span class="chart-fill"></span></span><span class="chart-note">Usual price</span></div>
-            <div class="chart-row current" data-chart="current"><span class="chart-price">--</span><span class="chart-track"><span class="chart-fill"></span><span class="chart-marker" aria-hidden="true"></span></span><span class="chart-note">Current</span></div>
-            <div class="chart-row" data-chart="typical"><span class="chart-price">--</span><span class="chart-track"><span class="chart-fill"></span></span><span class="chart-note">Typical sale</span></div>
-            <div class="chart-row" data-chart="recent"><span class="chart-price">--</span><span class="chart-track"><span class="chart-fill"></span></span><span class="chart-note">Recent low</span></div>
-          </div>
-        </div>
-        <div class="verdict">
-          <div class="verdict-speaker" aria-hidden="true"><img src="${chrome.runtime.getURL("test.png")}" alt=""></div>
-          <div class="speech verdict-text">I am reviewing the recent price history.</div>
-        </div>
-      </div>
-    </section>`;
-
-  shadowRoot.querySelector(".close").addEventListener("click", () => priceforge.remove());
-
-  const panel = shadowRoot.querySelector(".panel");
-  const collapseButton = shadowRoot.querySelector(".collapse");
-  collapseButton.addEventListener("click", () => {
-    const isCollapsed = panel.classList.toggle("is-collapsed");
-    collapseButton.setAttribute("aria-expanded", String(!isCollapsed));
-    collapseButton.setAttribute(
-      "aria-label",
-      isCollapsed ? "Expand PriceForge" : "Collapse PriceForge"
-    );
-    collapseButton.setAttribute(
-      "title",
-      isCollapsed ? "Expand PriceForge" : "Collapse PriceForge"
-    );
-    collapseButton.textContent = isCollapsed ? "+" : "−";
-  });
-
-  document.body.appendChild(priceforge);
-    chrome.runtime.sendMessage(
-  {
-    type: "getGameData",
-    appId: appId
-  },
-  response => {
-    if (!response?.success) {
-      console.error(
-        "PriceForge API error:",
-        response?.error || "Unknown error"
-      );
-
-      const historicalLowElement =
-        shadowRoot.querySelector(".historical-low");
-
-      if (historicalLowElement) {
-        historicalLowElement.textContent = "Unavailable";
-      }
-
-      return;
-    }
-
-    const data = response.data;
-    const apiVerdict = data.priceVerdict;
-    const signals = data.priceSignals;
-
-    const historicalLow = data.historicalLow?.price;
-    const historicalLowElement =
-      shadowRoot.querySelector(".historical-low");
-
-    const currentPriceValue = parseFloat(
-      currentPrice.replace(/[^0-9.]/g, "")
-    );
-
-    const formatPrice = value =>
-      typeof value === "number" ? `£${value.toFixed(2)}` : "Unavailable";
-
-    const chartValues = {
-      average: signals?.averagePrice,
-      current: signals?.currentPrice ?? currentPriceValue,
-      typical: signals?.typicalSalePrice,
-      recent: signals?.recentLow
+    const readText = (selector, fallback = null) => {
+      const element = purchaseArea?.querySelector(selector);
+      return element ? element.textContent.trim() : fallback;
     };
 
-    const availableChartValues = Object.values(chartValues)
-      .filter(value => typeof value === "number" && Number.isFinite(value));
-    const chartMaximum = Math.max(...availableChartValues, 1);
+    const currentPrice = readText(
+      ".discount_final_price, .game_purchase_price",
+      "Price unavailable"
+    );
 
-    Object.entries(chartValues).forEach(([key, value]) => {
-      const row = shadowRoot.querySelector(`[data-chart="${key}"]`);
-      if (!row) {
-        return;
-      }
+    const discount = readText(".discount_pct");
 
-      row.querySelector(".chart-price").textContent = formatPrice(value);
-      row.querySelector(".chart-fill").style.width =
-        typeof value === "number"
-          ? `${Math.max(5, (value / chartMaximum) * 100)}%`
-          : "5%";
+    // ---------------------------------------------------------
+    // PRICEFORGE CONTAINER
+    // ---------------------------------------------------------
+
+    const priceforge = document.createElement("aside");
+
+    priceforge.id = "priceforge-root";
+
+    priceforge.setAttribute(
+      "aria-label",
+      "PriceForge price summary"
+    );
+
+    const shadowRoot = priceforge.attachShadow({
+      mode: "open"
     });
 
-    const currentRow = shadowRoot.querySelector('[data-chart="current"]');
-    if (currentRow && typeof chartValues.current === "number") {
-      currentRow.style.setProperty(
-        "--marker-position",
-        `${Math.max(0, Math.min(100, (chartValues.current / chartMaximum) * 100))}%`
+    // ---------------------------------------------------------
+    // UI
+    // ---------------------------------------------------------
+
+    shadowRoot.innerHTML = `
+      <style>
+
+        :host {
+          all: initial;
+        }
+
+        /* ---------------------------------------------------
+           PANEL
+        --------------------------------------------------- */
+
+        .panel {
+          position: fixed;
+          right: 10px;
+          bottom: 24px;
+
+          width: min(320px, calc(100vw - 32px));
+
+          box-sizing: border-box;
+          overflow: hidden;
+
+          color: #d6d7d8;
+          background: #15191f;
+
+          border: 1px solid #303944;
+          border-radius: 12px;
+
+          box-shadow:
+            0 20px 54px rgba(0, 0, 0, .48),
+            0 0 28px rgba(102, 192, 244, .1);
+
+          font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+          letter-spacing: 0;
+
+          z-index: 999999;
+
+          animation: rise .4s cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        /* ---------------------------------------------------
+           TOP-RIGHT CONTROLS
+        --------------------------------------------------- */
+
+        .panel-controls {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+
+          display: flex;
+          align-items: center;
+
+          gap: 6px;
+
+          z-index: 5;
+        }
+
+        .header-button {
+          display: grid;
+          place-items: center;
+
+          width: 22px;
+          height: 22px;
+
+          padding: 0;
+
+          border: none;
+          border-radius: 0;
+
+          color: #7c9a9e;
+          background: transparent;
+
+          cursor: pointer;
+
+          font-size: 14px;
+          line-height: 1;
+        }
+
+        .header-button:hover {
+          color: #d6d7d8;
+          background: rgba(102, 192, 244, .1);
+        }
+
+        .close {
+          font-size: 17px;
+        }
+
+        /* ---------------------------------------------------
+           MAIN CONTENT
+        --------------------------------------------------- */
+
+        .content {
+          padding: 19px 20px 10px;
+        }
+
+        /* ---------------------------------------------------
+           VERDICT HEADER
+        --------------------------------------------------- */
+
+        .decision {
+          display: grid;
+          grid-template-columns: 9px minmax(0, 1fr);
+
+          gap: 13px;
+
+          align-items: center;
+
+          margin-bottom: 0;
+        }
+
+        .decision-marker {
+          width: 9px;
+          height: 48px;
+
+          border-radius: 3px;
+
+          background: #66c0f4;
+
+          box-shadow:
+            0 0 16px rgba(102, 192, 244, .3);
+        }
+
+        .decision-label {
+          margin-bottom: 3px;
+
+          color: #8f98a0;
+
+          font-size: 9px;
+          font-weight: 700;
+
+          letter-spacing: .13em;
+
+          text-transform: uppercase;
+        }
+
+        .decision-name {
+          color: #f5f5f5;
+
+          font-size: 27px;
+          font-weight: 800;
+
+          letter-spacing: .02em;
+
+          line-height: 1;
+        }
+
+        .confidence {
+          margin-top: 6px;
+
+          color: #9bb4c5;
+
+          font-size: 9px;
+          font-weight: 700;
+
+          letter-spacing: .08em;
+
+          text-transform: uppercase;
+        }
+
+        /* ---------------------------------------------------
+           VERDICT SPEECH
+        --------------------------------------------------- */
+
+        .verdict {
+          display: grid;
+
+          grid-template-columns: 65px minmax(0, 1fr);
+
+          gap: 0;
+
+          align-items: start;
+
+          margin-top: 17px;
+
+          padding-top: 14px;
+
+          border-top: 1px solid #303944;
+        }
+
+        .verdict-speaker {
+          display: block;
+
+          width: 70px;
+          height: 70px;
+
+          overflow: hidden;
+
+          transform: translate(-14px, -12px);
+        }
+
+        .verdict-speaker img {
+          display: block;
+
+          width: 100%;
+          height: 100%;
+
+          object-fit: contain;
+        }
+
+        .speech {
+          position: relative;
+
+          padding: 10px 11px;
+
+          color: #d6d7d8;
+
+          background: #1c252e;
+
+          border: 1px solid #3a4a58;
+
+          border-radius: 4px 10px 10px 10px;
+
+          font-size: 11px;
+          line-height: 1.55;
+        }
+
+        .speech::before {
+          position: absolute;
+
+          top: 20px;
+          left: -6px;
+
+          width: 10px;
+          height: 10px;
+
+          content: "";
+
+          background: #1c252e;
+
+          border-bottom: 1px solid #3a4a58;
+          border-left: 1px solid #3a4a58;
+
+          transform: rotate(45deg);
+        }
+
+        /* ---------------------------------------------------
+           PRICE ANALYSIS TOGGLE
+        --------------------------------------------------- */
+
+        .analysis-toggle {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+
+          width: 100%;
+
+          margin-top: 5px;
+          margin-bottom: 12px;
+
+          padding: 5px 0 3px;
+
+          color: #8f98a0;
+
+          background: transparent;
+          border: none;
+
+          cursor: pointer;
+
+          font-family: inherit;
+          font-size: 9px;
+          font-weight: 700;
+
+          letter-spacing: .13em;
+          text-align: left;
+          text-transform: uppercase;
+        }
+
+        .analysis-toggle:hover {
+          color: #d6d7d8;
+        }
+
+        .analysis-toggle-arrow {
+          display: inline-flex;
+
+          align-items: center;
+          justify-content: center;
+
+          width: 16px;
+          height: 16px;
+
+          color: #7c9a9e;
+
+          font-size: 15px;
+
+          line-height: 1;
+        }
+
+        .analysis-toggle:hover .analysis-toggle-arrow {
+          color: #66c0f4;
+        }
+
+        /* ---------------------------------------------------
+           PRICE ANALYSIS
+        --------------------------------------------------- */
+
+        .analysis {
+          display: none;
+
+          padding-top: 5px;
+        }
+
+        .analysis.is-open {
+          display: block;
+        }
+
+        .section-label {
+          margin-bottom: 15px;
+
+          color: #8f98a0;
+
+          font-size: 10px;
+          font-weight: 700;
+
+          letter-spacing: .13em;
+
+          text-transform: uppercase;
+        }
+
+        .price-chart {
+          display: grid;
+
+          gap: 13px;
+        }
+
+        .chart-row {
+          display: grid;
+
+          grid-template-columns:
+            74px
+            minmax(0, 1fr)
+            76px;
+
+          gap: 12px;
+
+          align-items: center;
+
+          min-height: 18px;
+
+          color: #d6d7d8;
+
+          font-size: 11px;
+        }
+
+        .chart-price {
+          font-variant-numeric: tabular-nums;
+        }
+
+        .chart-track {
+          position: relative;
+
+          width: 100%;
+          height: 5px;
+
+          overflow: visible;
+
+          background: #303944;
+
+          border-radius: 3px;
+        }
+
+        .chart-fill {
+          display: block;
+
+          height: 100%;
+
+          min-width: 5px;
+
+          background: #506575;
+
+          border-radius: 3px;
+        }
+
+        .chart-row.current .chart-fill {
+          background: #66c0f4;
+        }
+
+        .chart-marker {
+          position: absolute;
+
+          top: 50%;
+
+          left: var(--marker-position, 100%);
+
+          width: 12px;
+          height: 12px;
+
+          border: 2px solid #15191f;
+          border-radius: 50%;
+
+          background: #66c0f4;
+
+          box-shadow:
+            0 0 0 1px #66c0f4,
+            0 0 12px rgba(102, 192, 244, .42);
+
+          transform: translate(-50%, -50%);
+        }
+
+        .chart-note {
+          color: #8f98a0;
+
+          font-size: 10px;
+
+          white-space: nowrap;
+        }
+
+        /* ---------------------------------------------------
+           VERDICT COLOURS
+        --------------------------------------------------- */
+
+        .panel[data-type="historical-low"] .decision-marker {
+          background: #8ee6ad;
+
+          box-shadow:
+            0 0 16px rgba(142, 230, 173, .3);
+        }
+
+        .panel[data-type="historical-low"]
+        .chart-row.current
+        .chart-fill,
+
+        .panel[data-type="historical-low"]
+        .chart-marker {
+          background: #8ee6ad;
+        }
+
+        .panel[data-type="good"] .decision-marker {
+          background: #f4c95d;
+
+          box-shadow:
+            0 0 16px rgba(244, 201, 93, .25);
+        }
+
+        .panel[data-type="good"]
+        .chart-row.current
+        .chart-fill,
+
+        .panel[data-type="good"]
+        .chart-marker {
+          background: #f4c95d;
+        }
+
+        .panel[data-type="wait"] .decision-marker {
+          background: #e5a45a;
+
+          box-shadow:
+            0 0 16px rgba(229, 164, 90, .25);
+        }
+
+        .panel[data-type="wait"]
+        .chart-row.current
+        .chart-fill,
+
+        .panel[data-type="wait"]
+        .chart-marker {
+          background: #e5a45a;
+        }
+
+        .panel[data-type="free"] .decision-marker {
+          background: #8ee6ad;
+
+          box-shadow:
+            0 0 16px rgba(142, 230, 173, .3);
+        }
+
+        /* Free games do not need the analysis link */
+
+        .panel[data-type="free"] .analysis-toggle {
+          display: none;
+        }
+
+        /* ---------------------------------------------------
+           FOOTER
+        --------------------------------------------------- */
+
+        .panel-footer {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          padding: 8px 16px 11px;
+        }
+
+        .powered-by {
+          display: inline-flex;
+
+          align-items: center;
+          justify-content: center;
+
+          gap: 5px;
+
+          color: #66717c;
+
+          font-size: 8px;
+          font-weight: 600;
+
+          letter-spacing: .08em;
+
+          text-transform: uppercase;
+        }
+
+        .powered-by .mark {
+          display: inline-grid;
+
+          place-items: center;
+
+          width: 12px;
+          height: 12px;
+
+          color: #15191f;
+
+          background: #66c0f4;
+
+          border-radius: 3px;
+
+          font-size: 7px;
+          font-weight: 800;
+
+          opacity: .7;
+        }
+
+        /* ---------------------------------------------------
+           COLLAPSED PANEL
+        --------------------------------------------------- */
+
+        .panel.is-collapsed {
+          width: max-content;
+
+          min-width: 164px;
+        }
+
+        .panel.is-collapsed .content {
+          display: none;
+        }
+
+        .panel.is-collapsed .powered-by {
+          display: none;
+        }
+
+        .panel.is-collapsed .panel-footer {
+          padding: 0;
+        }
+
+        .panel.is-collapsed .panel-controls {
+          position: static;
+
+          padding: 10px;
+
+          justify-content: center;
+        }
+
+        /* ---------------------------------------------------
+           ANIMATION
+        --------------------------------------------------- */
+
+        @keyframes rise {
+          from {
+            opacity: 0;
+
+            transform:
+              translateY(12px)
+              scale(.98);
+          }
+
+          to {
+            opacity: 1;
+
+            transform:
+              translateY(0)
+              scale(1);
+          }
+        }
+
+        /* ---------------------------------------------------
+           RESPONSIVE
+        --------------------------------------------------- */
+
+        @media (max-width: 480px) {
+          .panel {
+            right: 16px;
+            bottom: 16px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .panel {
+            animation: none;
+          }
+        }
+
+      </style>
+
+      <section class="panel">
+
+        <!-- TOP CONTROLS -->
+
+        <div class="panel-controls">
+
+          <button
+            class="header-button collapse"
+            type="button"
+            aria-label="Collapse PriceForge"
+            aria-expanded="true"
+            title="Collapse PriceForge"
+          >−</button>
+
+          <button
+            class="header-button close"
+            type="button"
+            aria-label="Close PriceForge"
+            title="Close PriceForge"
+          >&times;</button>
+
+        </div>
+
+        <!-- MAIN CONTENT -->
+
+        <div class="content">
+
+          <!-- VERDICT -->
+
+          <div class="decision">
+
+            <span
+              class="decision-marker"
+              aria-hidden="true"
+            ></span>
+
+            <div>
+
+              <div class="decision-label">
+                PriceForge verdict
+              </div>
+
+              <div class="decision-name">
+                Analysing...
+              </div>
+
+              <div class="confidence">
+                Checking confidence
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- VERDICT SPEECH -->
+
+          <div class="verdict">
+
+            <div
+              class="verdict-speaker"
+              aria-hidden="true"
+            >
+              <img
+                src="${chrome.runtime.getURL("test.png")}"
+                alt=""
+              >
+            </div>
+
+            <div class="speech verdict-text">
+              I am reviewing the recent price history.
+            </div>
+
+          </div>
+
+          <!-- PRICE ANALYSIS TOGGLE -->
+
+          <button
+            class="analysis-toggle"
+            type="button"
+            aria-expanded="false"
+          >
+
+            <span>
+              View price analysis
+            </span>
+
+            <span
+              class="analysis-toggle-arrow"
+              aria-hidden="true"
+            >›</span>
+
+          </button>
+
+          <!-- PRICE ANALYSIS -->
+
+          <div
+            class="analysis"
+            aria-hidden="true"
+          >
+
+            <div class="section-label">
+              Price position
+            </div>
+
+            <div class="price-chart">
+
+              <div
+                class="chart-row"
+                data-chart="normal"
+              >
+
+                <span class="chart-price">
+                  --
+                </span>
+
+                <span class="chart-track">
+
+                  <span class="chart-fill"></span>
+
+                </span>
+
+                <span class="chart-note">
+                  Normal price
+                </span>
+
+              </div>
+
+              <div
+                class="chart-row current"
+                data-chart="current"
+              >
+
+                <span class="chart-price">
+                  --
+                </span>
+
+                <span class="chart-track">
+
+                  <span class="chart-fill"></span>
+
+                  <span
+                    class="chart-marker"
+                    aria-hidden="true"
+                  ></span>
+
+                </span>
+
+                <span class="chart-note">
+                  Current price
+                </span>
+
+              </div>
+
+              <div
+                class="chart-row"
+                data-chart="typical"
+              >
+
+                <span class="chart-price">
+                  --
+                </span>
+
+                <span class="chart-track">
+
+                  <span class="chart-fill"></span>
+
+                </span>
+
+                <span class="chart-note">
+                  Typical sale
+                </span>
+
+              </div>
+
+              <div
+                class="chart-row"
+                data-chart="recent"
+              >
+
+                <span class="chart-price">
+                  --
+                </span>
+
+                <span class="chart-track">
+
+                  <span class="chart-fill"></span>
+
+                </span>
+
+                <span class="chart-note">
+                  Recent low
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+
+        <div class="panel-footer">
+
+          <div class="powered-by">
+
+            <span class="mark">
+              ⚒
+            </span>
+
+            <span>
+              Powered by PriceForge
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+    `;
+
+    // ---------------------------------------------------------
+    // ELEMENT REFERENCES
+    // ---------------------------------------------------------
+
+    const panel =
+      shadowRoot.querySelector(".panel");
+
+    const closeButton =
+      shadowRoot.querySelector(".close");
+
+    const collapseButton =
+      shadowRoot.querySelector(".collapse");
+
+    const analysisToggle =
+      shadowRoot.querySelector(".analysis-toggle");
+
+    const analysis =
+      shadowRoot.querySelector(".analysis");
+
+    const analysisToggleArrow =
+      shadowRoot.querySelector(
+        ".analysis-toggle-arrow"
       );
-    }
 
-    // Calculate how far above the historical low we are
-    const percentAboveLow =
-      historicalLow && currentPriceValue !== null
-        ? ((currentPriceValue - historicalLow) / historicalLow) * 100
-        : null;
+    // ---------------------------------------------------------
+    // CLOSE
+    // ---------------------------------------------------------
 
-    const roundedPercentAboveLow =
-      percentAboveLow !== null
-        ? Math.round(percentAboveLow)
-        : null;
+    closeButton.addEventListener(
+      "click",
+      () => {
+        priceforge.remove();
+      }
+    );
 
-    // PriceForge verdict
-    let verdict = "";
-    let verdictType = "";
+    // ---------------------------------------------------------
+    // COLLAPSE
+    // ---------------------------------------------------------
 
-    if (roundedPercentAboveLow === 0) {
-      verdict = "This is the lowest price we've seen, buy now!";
-      verdictType = "historical-low";
-    } else if (roundedPercentAboveLow <= 10) {
-      verdict =
-        "You're very close to the historical low. This is an excellent price.";
-      verdictType = "excellent";
-    } else if (roundedPercentAboveLow <= 25) {
-      verdict =
-        "This is a good price, although you may find it cheaper during a sale.";
-      verdictType = "good";
-    } else if (roundedPercentAboveLow <= 40) {
-      verdict =
-        "The price is noticeably above its historical low. It may be worth waiting.";
-      verdictType = "wait";
-    } else {
-      verdict =
-        "The price is well above its historical low. I'd wait for a sale.";
-      verdictType = "wait";
-    }
+    collapseButton.addEventListener(
+      "click",
+      () => {
+        const isCollapsed =
+          panel.classList.toggle(
+            "is-collapsed"
+          );
 
-    const visualVerdictType =
-      apiVerdict?.type ||
-      (apiVerdict?.verdict === "BUY NOW"
-        ? "historical-low"
-        : apiVerdict?.verdict === "WAIT"
-          ? "wait"
-          : apiVerdict?.verdict === "GOOD TIME"
-            ? "excellent"
-            : verdictType);
+        collapseButton.setAttribute(
+          "aria-expanded",
+          String(!isCollapsed)
+        );
 
-    // Update historical low
-    if (historicalLow !== undefined && historicalLowElement) {
-      historicalLowElement.textContent =
-        `£${historicalLow.toFixed(2)}`;
-    }
+        collapseButton.setAttribute(
+          "aria-label",
+          isCollapsed
+            ? "Expand PriceForge"
+            : "Collapse PriceForge"
+        );
 
-    // Update verdict
-    const verdictElement =
-      shadowRoot.querySelector(".verdict-text");
+        collapseButton.setAttribute(
+          "title",
+          isCollapsed
+            ? "Expand PriceForge"
+            : "Collapse PriceForge"
+        );
 
-    const verdictPanel =
-      shadowRoot.querySelector(".verdict");
+        collapseButton.textContent =
+          isCollapsed
+            ? "+"
+            : "−";
+      }
+    );
 
-    const verdictIcon =
-      shadowRoot.querySelector(".verdict-icon");
+    // ---------------------------------------------------------
+    // VIEW PRICE ANALYSIS
+    // ---------------------------------------------------------
 
-    const collapsedVerdictIcon =
-      shadowRoot.querySelector(".collapsed-verdict-icon");
+    analysisToggle.addEventListener(
+      "click",
+      () => {
+        const isOpen =
+          analysis.classList.toggle(
+            "is-open"
+          );
 
-    const verdictIcons = {
-      "historical-low": "★",
-      excellent: "⚡",
-      good: "↗",
-      wait: "◷"
-    };
+        analysisToggle.setAttribute(
+          "aria-expanded",
+          String(isOpen)
+        );
 
-    if (verdictElement) {
-      verdictElement.textContent = verdict;
-    }
+        analysis.setAttribute(
+          "aria-hidden",
+          String(!isOpen)
+        );
 
-    if (verdictPanel) {
-      verdictPanel.dataset.type = visualVerdictType;
-    }
+        analysisToggle.querySelector(
+          "span:first-child"
+        ).textContent =
+          isOpen
+            ? "Hide price analysis"
+            : "View price analysis";
 
-    if (panel) {
-      panel.dataset.type = visualVerdictType;
-    }
+        analysisToggleArrow.textContent =
+          isOpen
+            ? "⌃"
+            : "›";
+      }
+    );
 
-    if (verdictIcon) {
-      verdictIcon.textContent = verdictIcons[visualVerdictType] || "◆";
-    }
+    // ---------------------------------------------------------
+    // ADD TO PAGE
+    // ---------------------------------------------------------
 
-    if (collapsedVerdictIcon) {
-      collapsedVerdictIcon.textContent = verdictIcons[visualVerdictType] || "◆";
-    }
+    document.body.appendChild(priceforge);
 
-    const verdictName =
-      shadowRoot.querySelector(".decision-name");
+    // ---------------------------------------------------------
+    // REQUEST GAME DATA
+    // ---------------------------------------------------------
 
-    const confidence =
-      shadowRoot.querySelector(".confidence");
+    chrome.runtime.sendMessage(
+      {
+        type: "getGameData",
+        appId: appId
+      },
+      response => {
 
-    const displayedVerdict =
-      apiVerdict?.verdict || verdict;
+        // -----------------------------------------------------
+        // API ERROR
+        // -----------------------------------------------------
 
-    const displayedConfidence =
-      apiVerdict?.confidence || (verdictType === "wait" ? "low" : "medium");
+        if (!response?.success) {
 
-    const displayedReason =
-      apiVerdict?.reason || verdict;
+          console.error(
+            "PriceForge API error:",
+            response?.error ||
+              "Unknown error"
+          );
 
-    if (verdictName) {
-      verdictName.textContent = displayedVerdict;
-    }
+          const verdictName =
+            shadowRoot.querySelector(
+              ".decision-name"
+            );
 
-    if (confidence) {
-      confidence.textContent = `${displayedConfidence} confidence`;
-    }
+          const confidence =
+            shadowRoot.querySelector(
+              ".confidence"
+            );
 
-    if (verdictElement) {
-      verdictElement.textContent = displayedReason;
-    }
+          const verdictElement =
+            shadowRoot.querySelector(
+              ".verdict-text"
+            );
 
-    console.log("Current Price:", currentPriceValue);
-    console.log("Historical Low:", historicalLow);
-    console.log("Percent Above Low:", roundedPercentAboveLow);
-    console.log("Verdict:", verdict);
-    console.log("Verdict Type:", verdictType);
-  });
-}
+          if (verdictName) {
+            verdictName.textContent =
+              "UNAVAILABLE";
+          }
+
+          if (confidence) {
+            confidence.textContent =
+              "Low confidence";
+          }
+
+          if (verdictElement) {
+            verdictElement.textContent =
+              "I couldn't get reliable price data for this game.";
+          }
+
+          if (panel) {
+            panel.dataset.type =
+              "wait";
+          }
+
+          return;
+        }
+
+        // -----------------------------------------------------
+        // API DATA
+        // -----------------------------------------------------
+
+        const data =
+          response.data;
+
+        const apiVerdict =
+          data.priceVerdict;
+
+        const signals =
+          data.priceSignals;
+
+        const historicalLow =
+          data.historicalLow?.price;
+
+        // -----------------------------------------------------
+        // CURRENT PRICE
+        // -----------------------------------------------------
+
+        const currentPriceValue =
+          parseFloat(
+            currentPrice.replace(
+              /[^0-9.]/g,
+              ""
+            )
+          );
+
+        // -----------------------------------------------------
+        // PRICE FORMAT
+        // -----------------------------------------------------
+
+        const formatPrice =
+          value => {
+            return typeof value === "number" &&
+              Number.isFinite(value)
+              ? `£${value.toFixed(2)}`
+              : "Unavailable";
+          };
+
+        // -----------------------------------------------------
+        // CHART VALUES
+        // -----------------------------------------------------
+
+        const chartValues = {
+          normal:
+            signals?.normalPrice,
+
+          current:
+            signals?.currentPrice ??
+            currentPriceValue,
+
+          typical:
+            signals?.typicalSalePrice,
+
+          recent:
+            signals?.recentLow
+        };
+
+        const availableChartValues =
+          Object.values(chartValues)
+            .filter(
+              value =>
+                typeof value === "number" &&
+                Number.isFinite(value)
+            );
+
+        const chartMaximum =
+          Math.max(
+            ...availableChartValues,
+            1
+          );
+
+        // -----------------------------------------------------
+        // UPDATE CHART
+        // -----------------------------------------------------
+
+        Object.entries(
+          chartValues
+        ).forEach(
+          ([key, value]) => {
+
+            const row =
+              shadowRoot.querySelector(
+                `[data-chart="${key}"]`
+              );
+
+            if (!row) {
+              return;
+            }
+
+            row.querySelector(
+              ".chart-price"
+            ).textContent =
+              formatPrice(value);
+
+            row.querySelector(
+              ".chart-fill"
+            ).style.width =
+              typeof value === "number" &&
+              Number.isFinite(value)
+                ? `${Math.max(
+                    5,
+                    (value / chartMaximum) * 100
+                  )}%`
+                : "5%";
+          }
+        );
+
+        // -----------------------------------------------------
+        // CURRENT PRICE MARKER
+        // -----------------------------------------------------
+
+        const currentRow =
+          shadowRoot.querySelector(
+            '[data-chart="current"]'
+          );
+
+        if (
+          currentRow &&
+          typeof chartValues.current === "number"
+        ) {
+
+          currentRow.style.setProperty(
+            "--marker-position",
+            `${Math.max(
+              0,
+              Math.min(
+                100,
+                (chartValues.current /
+                  chartMaximum) *
+                  100
+              )
+            )}%`
+          );
+        }
+
+        // -----------------------------------------------------
+        // PRICEFORGE VERDICT
+        // -----------------------------------------------------
+
+        const verdictName =
+          shadowRoot.querySelector(
+            ".decision-name"
+          );
+
+        const confidence =
+          shadowRoot.querySelector(
+            ".confidence"
+          );
+
+        const verdictElement =
+          shadowRoot.querySelector(
+            ".verdict-text"
+          );
+
+        // -----------------------------------------------------
+        // BACKEND VERDICT IS SOURCE OF TRUTH
+        // -----------------------------------------------------
+
+        const displayedVerdict =
+          apiVerdict?.verdict ||
+          "WAIT";
+
+        const displayedConfidence =
+          apiVerdict?.confidence ||
+          "low";
+
+        const displayedReason =
+          apiVerdict?.reason ||
+          "I couldn't determine whether this is a good time to buy.";
+
+        // -----------------------------------------------------
+        // VISUAL TYPE
+        // -----------------------------------------------------
+
+        const visualVerdictType =
+          apiVerdict?.type ||
+          (
+            displayedVerdict === "BUY NOW"
+              ? "historical-low"
+              : displayedVerdict === "GOOD TIME"
+                ? "good"
+                : displayedVerdict === "IT'S FREE"
+                  ? "free"
+                  : "wait"
+          );
+
+        // -----------------------------------------------------
+        // UPDATE VERDICT NAME
+        // -----------------------------------------------------
+
+        if (verdictName) {
+          verdictName.textContent =
+            displayedVerdict;
+        }
+
+        // -----------------------------------------------------
+        // UPDATE CONFIDENCE
+        // -----------------------------------------------------
+
+        if (confidence) {
+          confidence.textContent =
+            `${displayedConfidence} confidence`;
+        }
+
+        // -----------------------------------------------------
+        // UPDATE SPEECH
+        // -----------------------------------------------------
+
+        if (verdictElement) {
+          verdictElement.textContent =
+            displayedReason;
+        }
+
+        // -----------------------------------------------------
+        // UPDATE PANEL TYPE
+        // -----------------------------------------------------
+
+        if (panel) {
+          panel.dataset.type =
+            visualVerdictType;
+        }
+
+        // -----------------------------------------------------
+        // FREE GAME
+        // -----------------------------------------------------
+
+        if (
+          visualVerdictType === "free"
+        ) {
+
+          analysis.classList.remove(
+            "is-open"
+          );
+
+          analysisToggle.setAttribute(
+            "aria-expanded",
+            "false"
+          );
+
+          analysis.setAttribute(
+            "aria-hidden",
+            "true"
+          );
+        }
+
+        // -----------------------------------------------------
+        // DEBUG
+        // -----------------------------------------------------
+
+        console.log(
+          "Current Price:",
+          currentPriceValue
+        );
+
+        console.log(
+          "Historical Low:",
+          historicalLow
+        );
+
+        console.log(
+          "Price Signals:",
+          signals
+        );
+
+        console.log(
+          "PriceForge Verdict:",
+          apiVerdict
+        );
+      }
+    );
+  }
 }
