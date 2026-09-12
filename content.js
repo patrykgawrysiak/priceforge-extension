@@ -252,37 +252,30 @@ if (!gamePageMatch) {
 
         .speech {
           position: relative;
-
           padding: 10px 11px;
-
           color: #d6d7d8;
-
           background: #1c252e;
-
-          border: 1px solid #3a4a58;
-
+          border: 1px solid rgba(102, 192, 244, .45);
           border-radius: 4px 10px 10px 10px;
-
           font-size: 11px;
           line-height: 1.55;
+
+          /* Blue PriceForge glow */
+          box-shadow:
+            0 0 8px rgba(102, 192, 244, .25),
+            0 0 20px rgba(102, 192, 244, .12);
         }
 
         .speech::before {
           position: absolute;
-
           top: 20px;
           left: -6px;
-
           width: 10px;
           height: 10px;
-
           content: "";
-
           background: #1c252e;
-
-          border-bottom: 1px solid #3a4a58;
-          border-left: 1px solid #3a4a58;
-
+          border-bottom: 1px solid rgba(102, 192, 244, .45);
+          border-left: 1px solid rgba(102, 192, 244, .45);
           transform: rotate(45deg);
         }
 
