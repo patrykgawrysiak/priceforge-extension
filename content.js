@@ -287,25 +287,17 @@ if (!gamePageMatch) {
           display: flex;
           align-items: center;
           justify-content: space-between;
-
           width: 100%;
-
-          margin-top: 12px;
-          margin-bottom: 12px;
-
-          padding: 5px 0 3px;
-
+          margin-top: 10px;
+          margin-bottom: 3px;
+          padding: 3px 0;
           color: #8f98a0;
-
           background: transparent;
           border: none;
-
           cursor: pointer;
-
           font-family: inherit;
           font-size: 9px;
           font-weight: 700;
-
           letter-spacing: .13em;
           text-align: left;
           text-transform: uppercase;
@@ -344,9 +336,9 @@ if (!gamePageMatch) {
           align-items: center;
           justify-content: space-between;
           width: 100%;
-          margin-top: 2px;
-          margin-bottom: 12px;
-          padding: 5px 0 3px;
+          margin-top: 5px;
+          margin-bottom: 3px;
+          padding: 3px 0;
           color: #8f98a0;
           background: transparent;
           border: none;
@@ -384,11 +376,11 @@ if (!gamePageMatch) {
 
         .key-check {
           display: none;
-          margin: 3px 0 12px;
-          padding: 11px 12px;
-          background: #1c252e;
-          border: 1px solid rgba(102, 192, 244, .25);
-          border-radius: 8px;
+          margin: 0 0 8px;
+          padding: 2px 0 4px;
+          background: transparent;
+          border: none;
+          border-radius: 0;
         }
 
         .key-check.is-open {
@@ -404,12 +396,21 @@ if (!gamePageMatch) {
           flex: 0 0 auto;
           width: 22px;
           height: 22px;
-          border-radius: 50%;
-          color: #15191f;
-          background: #8ee6ad;
-          font-size: 13px;
+        }
+
+        .key-check-tick {
+          display: none;
+          color: #8ee6ad;
+          font-size: 21px;
           font-weight: 900;
           line-height: 1;
+        }
+
+        .key-check-steam-logo {
+          display: none;
+          width: 22px;
+          height: 22px;
+          object-fit: contain;
         }
 
         .key-check-content {
@@ -437,8 +438,8 @@ if (!gamePageMatch) {
 
         .analysis {
           display: none;
-
-          padding-top: 5px;
+          padding-top: 2px;
+          padding-bottom: 2px;
         }
 
         .analysis.is-open {
@@ -446,7 +447,7 @@ if (!gamePageMatch) {
         }
 
         .section-label {
-          margin-bottom: 15px;
+          margin-bottom: 11px;
 
           color: #8f98a0;
 
@@ -801,56 +802,148 @@ if (!gamePageMatch) {
 
           <!-- PRICE ANALYSIS TOGGLE -->
 
-          <button
-            class="analysis-toggle"
-            type="button"
-            aria-expanded="false"
-          >
+            <button
+              class="analysis-toggle"
+              type="button"
+              aria-expanded="false"
+            >
+              <span>
+                View price analysis
+              </span>
 
-            <span>
-              View price analysis
-            </span>
+              <span
+                class="analysis-toggle-arrow"
+                aria-hidden="true"
+              >›</span>
+            </button>
 
-            <span
-              class="analysis-toggle-arrow"
+            <!-- PRICE ANALYSIS -->
+
+            <div
+              class="analysis"
               aria-hidden="true"
-            >›</span>
+            >
 
-          </button>
+              <div class="price-chart">
 
-          <!-- KEY PRICE CHECK -->
+                <div
+                  class="chart-row"
+                  data-chart="normal"
+                >
+                  <span class="chart-price">
+                    --
+                  </span>
 
-          <button
-            class="key-check-toggle"
-            type="button"
-            aria-expanded="false"
-          >
-            <span>
-              Is a key cheaper?
-            </span>
+                  <span class="chart-track">
+                    <span class="chart-fill"></span>
+                  </span>
 
-            <span
-              class="key-check-toggle-arrow"
-              aria-hidden="true"
-            >›</span>
-          </button>
+                  <span class="chart-note">
+                    Normal price
+                  </span>
+                </div>
 
-          <div
-            class="key-check"
-            aria-hidden="true"
-          >
-            <div class="key-check-icon">✓</div>
+                <div
+                  class="chart-row current"
+                  data-chart="current"
+                >
+                  <span class="chart-price">
+                    --
+                  </span>
 
-            <div class="key-check-content">
-              <div class="key-check-title">
-                Keys are cheaper
-              </div>
+                  <span class="chart-track">
+                    <span class="chart-fill"></span>
 
-              <div class="key-check-text">
-                An external game key is currently cheaper than Steam.
+                    <span
+                      class="chart-marker"
+                      aria-hidden="true"
+                    ></span>
+                  </span>
+
+                  <span class="chart-note">
+                    Current price
+                  </span>
+                </div>
+
+                <div
+                  class="chart-row"
+                  data-chart="typical"
+                >
+                  <span class="chart-price">
+                    --
+                  </span>
+
+                  <span class="chart-track">
+                    <span class="chart-fill"></span>
+                  </span>
+
+                  <span class="chart-note">
+                    Typical sale
+                  </span>
+                </div>
+
+                <div
+                  class="chart-row"
+                  data-chart="recent"
+                >
+                  <span class="chart-price">
+                    --
+                  </span>
+
+                  <span class="chart-track">
+                    <span class="chart-fill"></span>
+                  </span>
+
+                  <span class="chart-note">
+                    3 Month low
+                  </span>
+                </div>
+
               </div>
             </div>
-          </div>
+
+            <!-- KEY PRICE CHECK -->
+
+            <button
+              class="key-check-toggle"
+              type="button"
+              aria-expanded="false"
+            >
+              <span>
+                Is a key cheaper?
+              </span>
+
+              <span
+                class="key-check-toggle-arrow"
+                aria-hidden="true"
+              >›</span>
+            </button>
+
+            <div
+              class="key-check"
+              aria-hidden="true"
+            >
+              <div class="key-check-icon">
+                <span class="key-check-tick">✓</span>
+                <img
+                  class="key-check-steam-logo"
+                  src="${chrome.runtime.getURL("steam-logo.png")}"
+                  alt=""
+                >
+              </div>
+
+              <div class="key-check-content">
+
+                <div class="key-check-title">
+                  Keys are cheaper
+                </div>
+
+                <div class="key-check-text">
+                  An external game key is currently cheaper than Steam.
+                </div>
+
+              </div>
+            </div>
 
           <!-- PRICE ANALYSIS -->
 
@@ -858,10 +951,6 @@ if (!gamePageMatch) {
             class="analysis"
             aria-hidden="true"
           >
-
-            <div class="section-label">
-              Price position
-            </div>
 
             <div class="price-chart">
 
@@ -1218,6 +1307,9 @@ keyCheckToggle.addEventListener(
         const historicalLow =
           data.historicalLow?.price;
 
+        const keyCheck =
+          data.externalKeyCheck;
+
         // -----------------------------------------------------
         // CURRENT PRICE
         // -----------------------------------------------------
@@ -1446,6 +1538,76 @@ keyCheckToggle.addEventListener(
           analysis.setAttribute(
             "aria-hidden",
             "true"
+          );
+        }
+
+        // ---------------------------------------------------------
+        // EXTERNAL KEY CHECK
+        // ---------------------------------------------------------
+
+        const keyCheckTitle =
+          shadowRoot.querySelector(
+            ".key-check-title"
+          );
+
+        const keyCheckText =
+          shadowRoot.querySelector(
+            ".key-check-text"
+          );
+
+        const keyCheckIcon =
+          shadowRoot.querySelector(
+            ".key-check-icon"
+          );
+
+
+
+        const keyCheckElement =
+          shadowRoot.querySelector(
+            ".key-check"
+          );
+
+        if (
+          keyCheck?.available &&
+          keyCheck.cheaper
+        ) {
+
+          // -------------------------------------------------------
+          // KEYS ARE CHEAPER
+          // -------------------------------------------------------
+
+          keyCheckTitle.textContent =
+            "Keys are cheaper";
+
+          keyCheckText.textContent =
+            `A cheaper game key is currently available, starting at ${formatPrice(keyCheck.price)}`;
+
+          keyCheckIcon.querySelector(".key-check-tick").style.display = "block";
+          keyCheckIcon.querySelector(".key-check-steam-logo").style.display = "none";
+
+          keyCheckElement?.setAttribute(
+            "data-result",
+            "cheaper"
+          );
+
+        } else {
+
+          // -------------------------------------------------------
+          // STEAM WINS
+          // -------------------------------------------------------
+
+          keyCheckTitle.textContent =
+            "Steam wins";
+
+          keyCheckText.textContent =
+            "Steam currently has the best price";
+
+          keyCheckIcon.querySelector(".key-check-tick").style.display = "none";
+          keyCheckIcon.querySelector(".key-check-steam-logo").style.display = "block";
+
+          keyCheckElement?.setAttribute(
+            "data-result",
+            "steam"
           );
         }
 

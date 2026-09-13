@@ -1816,6 +1816,333 @@ function generatePriceVerdict(currentPrice, signals = null) {
     };
 }
 
+// =========================================================
+// EXTERNAL STEAM KEY PRICE CHECK
+// =========================================================
+//
+// PriceForge compares Steam against ALL current ITAD deals.
+//
+// We do NOT maintain our own retailer whitelist.
+// ITAD already determines which stores/deals are covered.
+//
+// The important question is:
+//
+// "Does this external deal actually provide a Steam key?"
+//
+// We therefore only accept external deals where ITAD
+// explicitly identifies Steam DRM (ID 61).
+// =========================================================
+
+
+// ---------------------------------------------------------
+// STEAM DRM DETECTION
+// ---------------------------------------------------------
+
+function isSteamKeyDeal(deal) {
+
+  if (!deal) {
+    return false;
+  }
+
+
+  const drm =
+    Array.isArray(deal.drm)
+      ? deal.drm
+      : [];
+
+
+  return drm.some(item => {
+
+    if (!item) {
+      return false;
+    }
+
+
+    const drmId =
+      Number(item.id);
+
+
+    const drmName =
+      String(
+        item.name || ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    return (
+      drmId === 61 ||
+      drmName === "steam"
+    );
+
+  });
+}
+
+
+// ---------------------------------------------------------
+// EXTERNAL STEAM PRICE CHECK
+// ---------------------------------------------------------
+
+async function checkExternalKeyPrice(
+  gameId,
+  steamPrice
+) {
+
+  if (
+    !gameId ||
+    !Number.isFinite(steamPrice)
+  ) {
+
+    return {
+      available: false,
+      cheaper: false
+    };
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        `https://api.isthereanydeal.com/games/prices/v3?key=${process.env.ITAD_API_KEY}&country=GB&capacity=0`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify([
+              gameId
+            ])
+        }
+      );
+
+
+    if (!response.ok) {
+
+      console.error(
+        "ITAD KEY PRICE ERROR:",
+        response.status,
+        await response.text()
+      );
+
+
+      return {
+        available: false,
+        cheaper: false
+      };
+    }
+
+
+    const data =
+      await response.json();
+
+
+    // -------------------------------------------------------
+    // GET ALL CURRENT DEALS
+    // -------------------------------------------------------
+
+    const gamePrices =
+      data?.[0]?.deals ||
+      [];
+
+
+    // -------------------------------------------------------
+    // DEBUG
+    // -------------------------------------------------------
+    //
+    // This shows us EVERYTHING ITAD returned.
+    //
+    // Particularly useful for checking why a deal such as
+    // GreenManGaming £4 might or might not qualify.
+    // -------------------------------------------------------
+
+    console.log(
+      "========== ITAD CURRENT DEALS =========="
+    );
+
+
+    console.table(
+      gamePrices.map(deal => ({
+
+        shop:
+          deal?.shop?.name || "Unknown",
+
+        shopId:
+          deal?.shop?.id ?? null,
+
+        price:
+          deal?.price?.amount ?? null,
+
+        currency:
+          deal?.price?.currency ?? null,
+
+        drm:
+          Array.isArray(deal?.drm)
+            ? deal.drm
+                .map(
+                  item =>
+                    `${item?.id ?? "?"}:${item?.name ?? "?"}`
+                )
+                .join(", ")
+            : "None",
+
+        isSteamKey:
+          isSteamKeyDeal(deal)
+
+      }))
+    );
+
+
+    // -------------------------------------------------------
+    // FIND ALL EXTERNAL STEAM KEYS
+    // -------------------------------------------------------
+    //
+    // NO STORE WHITELIST.
+    //
+    // If ITAD says the deal provides Steam DRM, we accept it.
+    // -------------------------------------------------------
+
+    const steamKeyDeals =
+      gamePrices
+
+        // Do not count Steam itself as an "external key"
+        .filter(
+          deal =>
+            Number(deal?.shop?.id) !== 61
+        )
+
+        // Deal must explicitly provide Steam DRM
+        .filter(
+          deal =>
+            isSteamKeyDeal(deal)
+        )
+
+        // Must have a valid GBP price
+        .filter(
+          deal =>
+            deal?.price?.currency === "GBP" &&
+            Number.isFinite(
+              deal?.price?.amount
+            )
+        );
+
+
+    // -------------------------------------------------------
+    // NO EXTERNAL STEAM KEY
+    // -------------------------------------------------------
+
+    if (
+      steamKeyDeals.length === 0
+    ) {
+
+      console.log(
+        "No external Steam key found."
+      );
+
+
+      return {
+        available: false,
+        cheaper: false
+      };
+    }
+
+
+    // -------------------------------------------------------
+    // CHEAPEST EXTERNAL STEAM KEY
+    // -------------------------------------------------------
+
+    const cheapestKey =
+      [...steamKeyDeals]
+        .sort(
+          (a, b) =>
+            Number(a.price.amount) -
+            Number(b.price.amount)
+        )[0];
+
+
+    const keyPrice =
+      Number(
+        cheapestKey.price.amount
+      );
+
+
+    // -------------------------------------------------------
+    // COMPARE AGAINST STEAM
+    // -------------------------------------------------------
+
+    const cheaper =
+      keyPrice < steamPrice;
+
+
+    console.log(
+      "========== PRICEFORGE KEY RESULT =========="
+    );
+
+
+    console.log(
+      "Steam price:",
+      steamPrice
+    );
+
+
+    console.log(
+      "Cheapest Steam key:",
+      keyPrice
+    );
+
+
+    console.log(
+      "Cheapest retailer:",
+      cheapestKey.shop?.name
+    );
+
+
+    console.log(
+      "Key cheaper:",
+      cheaper
+    );
+
+
+    // -------------------------------------------------------
+    // RETURN RESULT
+    // -------------------------------------------------------
+
+    return {
+
+      available:
+        true,
+
+      cheaper,
+
+      price:
+        keyPrice,
+
+      shop:
+        cheapestKey.shop?.name ||
+        null
+
+    };
+
+  } catch (error) {
+
+    console.error(
+      "EXTERNAL KEY CHECK ERROR:",
+      error
+    );
+
+
+    return {
+      available: false,
+      cheaper: false
+    };
+  }
+}
+
+
 
 // =========================================================
 // GAME API
@@ -2005,6 +2332,16 @@ app.get(
           priceSignals
         );
 
+      // ===================================================
+      // EXTERNAL KEY PRICE CHECK
+      // ===================================================
+
+      const externalKeyCheck =
+        await checkExternalKeyPrice(
+          gameId,
+          testCurrentPrice
+        );
+
 
       // ===================================================
       // RETURN DATA
@@ -2053,7 +2390,9 @@ app.get(
 
         priceSignals,
 
-        priceVerdict
+        priceVerdict,
+
+        externalKeyCheck
 
       });
 

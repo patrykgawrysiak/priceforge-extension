@@ -17,7 +17,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["test.png"],
+      "resources": ["test.png", "steam-logo.png"],
       "matches": ["https://store.steampowered.com/*"]
     }
   ]
