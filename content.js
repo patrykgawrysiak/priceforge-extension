@@ -17,11 +17,17 @@ if (!gamePageMatch) {
   // ---------------------------------------------------------
 
   if (!document.getElementById("priceforge-root")) {
-    const purchaseArea = document.querySelector("#game_area_purchase");
+
+    const purchaseArea =
+      document.querySelector("#game_area_purchase");
 
     const readText = (selector, fallback = null) => {
-      const element = purchaseArea?.querySelector(selector);
-      return element ? element.textContent.trim() : fallback;
+      const element =
+        purchaseArea?.querySelector(selector);
+
+      return element
+        ? element.textContent.trim()
+        : fallback;
     };
 
     const currentPrice = readText(
@@ -29,30 +35,35 @@ if (!gamePageMatch) {
       "Price unavailable"
     );
 
-    const discount = readText(".discount_pct");
+    const discount =
+      readText(".discount_pct");
 
     // ---------------------------------------------------------
     // PRICEFORGE CONTAINER
     // ---------------------------------------------------------
 
-    const priceforge = document.createElement("aside");
+    const priceforge =
+      document.createElement("aside");
 
-    priceforge.id = "priceforge-root";
+    priceforge.id =
+      "priceforge-root";
 
     priceforge.setAttribute(
       "aria-label",
       "PriceForge price summary"
     );
 
-    const shadowRoot = priceforge.attachShadow({
-      mode: "open"
-    });
+    const shadowRoot =
+      priceforge.attachShadow({
+        mode: "open"
+      });
 
     // ---------------------------------------------------------
     // UI
     // ---------------------------------------------------------
 
     shadowRoot.innerHTML = `
+
       <style>
 
         :host {
@@ -67,28 +78,24 @@ if (!gamePageMatch) {
           position: fixed;
           right: 10px;
           bottom: 24px;
-
           width: min(320px, calc(100vw - 32px));
-
           box-sizing: border-box;
           overflow: hidden;
-
           color: #d6d7d8;
           background: #15191f;
-
           border: 1px solid #303944;
           border-radius: 12px;
-
           box-shadow:
             0 20px 54px rgba(0, 0, 0, .48),
             0 0 28px rgba(102, 192, 244, .1);
-
-          font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+          font-family:
+            "Trebuchet MS",
+            "Segoe UI",
+            sans-serif;
           letter-spacing: 0;
-
           z-index: 999999;
-
-          animation: rise .4s cubic-bezier(.2, .8, .2, 1) both;
+          animation:
+            rise .4s cubic-bezier(.2, .8, .2, 1) both;
         }
 
         /* ---------------------------------------------------
@@ -99,39 +106,31 @@ if (!gamePageMatch) {
           position: absolute;
           top: 10px;
           right: 10px;
-
           display: flex;
           align-items: center;
-
           gap: 6px;
-
           z-index: 5;
         }
 
         .header-button {
           display: grid;
           place-items: center;
-
           width: 22px;
           height: 22px;
-
           padding: 0;
-
           border: none;
           border-radius: 0;
-
           color: #7c9a9e;
           background: transparent;
-
           cursor: pointer;
-
           font-size: 14px;
           line-height: 1;
         }
 
         .header-button:hover {
           color: #d6d7d8;
-          background: rgba(102, 192, 244, .1);
+          background:
+            rgba(102, 192, 244, .1);
         }
 
         .close {
@@ -152,61 +151,46 @@ if (!gamePageMatch) {
 
         .decision {
           display: grid;
-          grid-template-columns: 9px minmax(0, 1fr);
-
+          grid-template-columns:
+            9px minmax(0, 1fr);
           gap: 13px;
-
           align-items: center;
-
           margin-bottom: 0;
         }
 
         .decision-marker {
           width: 9px;
           height: 48px;
-
           border-radius: 3px;
-
           background: #66c0f4;
-
           box-shadow:
-            0 0 16px rgba(102, 192, 244, .3);
+            0 0 16px
+            rgba(102, 192, 244, .3);
         }
 
         .decision-label {
           margin-bottom: 3px;
-
           color: #8f98a0;
-
           font-size: 9px;
           font-weight: 700;
-
           letter-spacing: .13em;
-
           text-transform: uppercase;
         }
 
         .decision-name {
           color: #f5f5f5;
-
           font-size: 27px;
           font-weight: 800;
-
           letter-spacing: .02em;
-
           line-height: 1;
         }
 
         .confidence {
           margin-top: 6px;
-
           color: #9bb4c5;
-
           font-size: 9px;
           font-weight: 700;
-
           letter-spacing: .08em;
-
           text-transform: uppercase;
         }
 
@@ -216,37 +200,28 @@ if (!gamePageMatch) {
 
         .verdict {
           display: grid;
-
-          grid-template-columns: 65px minmax(0, 1fr);
-
+          grid-template-columns:
+            65px minmax(0, 1fr);
           gap: 0;
-
           align-items: start;
-
           margin-top: 17px;
-
           padding-top: 14px;
-
           border-top: 1px solid #303944;
         }
 
         .verdict-speaker {
           display: block;
-
           width: 70px;
           height: 70px;
-
           overflow: hidden;
-
-          transform: translate(-14px, -12px);
+          transform:
+            translate(-14px, -12px);
         }
 
         .verdict-speaker img {
           display: block;
-
           width: 100%;
           height: 100%;
-
           object-fit: contain;
         }
 
@@ -255,15 +230,18 @@ if (!gamePageMatch) {
           padding: 10px 11px;
           color: #d6d7d8;
           background: #1c252e;
-          border: 1px solid rgba(102, 192, 244, .45);
-          border-radius: 4px 10px 10px 10px;
+          border:
+            1px solid
+            rgba(102, 192, 244, .45);
+          border-radius:
+            4px 10px 10px 10px;
           font-size: 11px;
           line-height: 1.55;
-
-          /* Blue PriceForge glow */
           box-shadow:
-            0 0 8px rgba(102, 192, 244, .25),
-            0 0 20px rgba(102, 192, 244, .12);
+            0 0 8px
+            rgba(102, 192, 244, .25),
+            0 0 20px
+            rgba(102, 192, 244, .12);
         }
 
         .speech::before {
@@ -274,8 +252,12 @@ if (!gamePageMatch) {
           height: 10px;
           content: "";
           background: #1c252e;
-          border-bottom: 1px solid rgba(102, 192, 244, .45);
-          border-left: 1px solid rgba(102, 192, 244, .45);
+          border-bottom:
+            1px solid
+            rgba(102, 192, 244, .45);
+          border-left:
+            1px solid
+            rgba(102, 192, 244, .45);
           transform: rotate(45deg);
         }
 
@@ -309,26 +291,22 @@ if (!gamePageMatch) {
 
         .analysis-toggle-arrow {
           display: inline-flex;
-
           align-items: center;
           justify-content: center;
-
           width: 16px;
           height: 16px;
-
           color: #7c9a9e;
-
           font-size: 15px;
-
           line-height: 1;
         }
 
-        .analysis-toggle:hover .analysis-toggle-arrow {
+        .analysis-toggle:hover
+        .analysis-toggle-arrow {
           color: #66c0f4;
         }
 
         /* ---------------------------------------------------
-          KEY PRICE CHECK
+           KEY PRICE CHECK
         --------------------------------------------------- */
 
         .key-check-toggle {
@@ -366,12 +344,13 @@ if (!gamePageMatch) {
           line-height: 1;
         }
 
-        .key-check-toggle:hover .key-check-toggle-arrow {
+        .key-check-toggle:hover
+        .key-check-toggle-arrow {
           color: #66c0f4;
         }
 
         /* ---------------------------------------------------
-          KEY CHECK RESULT
+           KEY CHECK RESULT
         --------------------------------------------------- */
 
         .key-check {
@@ -448,160 +427,158 @@ if (!gamePageMatch) {
 
         .section-label {
           margin-bottom: 11px;
-
           color: #8f98a0;
-
           font-size: 10px;
           font-weight: 700;
-
           letter-spacing: .13em;
-
           text-transform: uppercase;
         }
 
         .price-chart {
           display: grid;
-
           gap: 13px;
         }
 
         .chart-row {
           display: grid;
-
           grid-template-columns:
             74px
             minmax(0, 1fr)
             76px;
-
           gap: 12px;
-
           align-items: center;
-
           min-height: 18px;
-
           color: #d6d7d8;
-
           font-size: 11px;
         }
 
         .chart-price {
-          font-variant-numeric: tabular-nums;
+          font-variant-numeric:
+            tabular-nums;
         }
 
         .chart-track {
           position: relative;
-
           width: 100%;
           height: 5px;
-
           overflow: visible;
-
           background: #303944;
-
           border-radius: 3px;
         }
 
         .chart-fill {
           display: block;
-
           height: 100%;
-
           min-width: 5px;
-
           background: #506575;
-
           border-radius: 3px;
         }
 
-        .chart-row.current .chart-fill {
+        .chart-row.current
+        .chart-fill {
           background: #66c0f4;
         }
 
         .chart-marker {
           position: absolute;
-
           top: 50%;
-
           left: var(--marker-position, 100%);
-
           width: 12px;
           height: 12px;
-
           border: 2px solid #15191f;
           border-radius: 50%;
-
           background: #66c0f4;
-
           box-shadow:
             0 0 0 1px #66c0f4,
-            0 0 12px rgba(102, 192, 244, .42);
-
-          transform: translate(-50%, -50%);
+            0 0 12px
+            rgba(102, 192, 244, .42);
+          transform:
+            translate(-50%, -50%);
         }
 
         .chart-note {
           color: #8f98a0;
-
           font-size: 10px;
-
           white-space: nowrap;
         }
 
         /* ---------------------------------------------------
-            VERDICT COLOURS
-          --------------------------------------------------- */
+           VERDICT COLOURS
+        --------------------------------------------------- */
 
-          .panel[data-type="historical-low"] .decision-marker {
-            background: #8ee6ad;
-            box-shadow:
-              0 0 16px rgba(142, 230, 173, .3);
-          }
+        .panel[data-type="historical-low"]
+        .decision-marker {
+          background: #8ee6ad;
+          box-shadow:
+            0 0 16px
+            rgba(142, 230, 173, .3);
+        }
 
-          .panel[data-type="historical-low"]
-          .chart-row.current
-          .chart-fill,
-          .panel[data-type="historical-low"]
-          .chart-marker {
-            background: #8ee6ad;
-          }
+        .panel[data-type="historical-low"]
+        .chart-row.current
+        .chart-fill,
 
-          .panel[data-type="fair"] .decision-marker {
-            background: #f4c95d;
-            box-shadow:
-              0 0 16px rgba(244, 201, 93, .25);
-          }
+        .panel[data-type="historical-low"]
+        .chart-marker {
+          background: #8ee6ad;
+        }
 
-          .panel[data-type="fair"]
-          .chart-row.current
-          .chart-fill,
-          .panel[data-type="fair"]
-          .chart-marker {
-            background: #f4c95d;
-          }
+        .panel[data-type="fair"]
+        .decision-marker,
 
-          .panel[data-type="wait"] .decision-marker {
-            background: #af1c1c;
-            box-shadow:
-              0 0 16px rgba(229, 164, 90, .25);
-          }
+        .panel[data-type="good"]
+        .decision-marker {
+          background: #f4c95d;
+          box-shadow:
+            0 0 16px
+            rgba(244, 201, 93, .25);
+        }
 
-          .panel[data-type="wait"]
-          .chart-row.current
-          .chart-fill,
-          .panel[data-type="wait"]
-          .chart-marker {
-            background: #af1c1c;
-          }
+        .panel[data-type="fair"]
+        .chart-row.current
+        .chart-fill,
 
-          .panel[data-type="free"] .decision-marker {
-            background: #8ee6ad;
-            box-shadow:
-              0 0 16px rgba(142, 230, 173, .3);
-          }
+        .panel[data-type="fair"]
+        .chart-marker,
 
-        /* Free games do not need the analysis link */
+        .panel[data-type="good"]
+        .chart-row.current
+        .chart-fill,
 
-        .panel[data-type="free"] .analysis-toggle {
+        .panel[data-type="good"]
+        .chart-marker {
+          background: #f4c95d;
+        }
+
+        .panel[data-type="wait"]
+        .decision-marker {
+          background: #af1c1c;
+          box-shadow:
+            0 0 16px
+            rgba(175, 28, 28, .25);
+        }
+
+        .panel[data-type="wait"]
+        .chart-row.current
+        .chart-fill,
+
+        .panel[data-type="wait"]
+        .chart-marker {
+          background: #af1c1c;
+        }
+
+        .panel[data-type="free"]
+        .decision-marker {
+          background: #8ee6ad;
+          box-shadow:
+            0 0 16px
+            rgba(142, 230, 173, .3);
+        }
+
+        /* Free games do not need analysis */
+
+        .panel[data-type="free"]
+        .analysis-toggle {
           display: none;
         }
 
@@ -613,76 +590,238 @@ if (!gamePageMatch) {
           display: flex;
           align-items: center;
           justify-content: center;
-
           padding: 8px 16px 11px;
+          border-top:
+            1px solid
+            rgba(48, 57, 68, .55);
+        }
+
+        .footer-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 7px;
         }
 
         .powered-by {
           display: inline-flex;
-
           align-items: center;
           justify-content: center;
-
           gap: 5px;
-
           color: #66717c;
-
           font-size: 8px;
           font-weight: 600;
-
           letter-spacing: .08em;
-
           text-transform: uppercase;
         }
 
         .powered-by .mark {
           display: inline-grid;
-
           place-items: center;
-
           width: 12px;
           height: 12px;
-
           color: #15191f;
-
           background: #66c0f4;
-
           border-radius: 3px;
-
           font-size: 7px;
           font-weight: 800;
-
           opacity: .7;
         }
 
         /* ---------------------------------------------------
-           COLLAPSED PANEL
+           SUPPORT DEVELOPER
+        --------------------------------------------------- */
+
+        .support-dev {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          padding: 2px 5px;
+          color: #66717c;
+          background: transparent;
+          border: none;
+          border-radius: 5px;
+          font-family: inherit;
+          font-size: 8px;
+          font-weight: 600;
+          letter-spacing: .06em;
+          text-decoration: none;
+          text-transform: uppercase;
+          transition:
+            color .18s ease,
+            background .18s ease;
+        }
+
+        .support-dev:hover {
+          color: #d6d7d8;
+          background:
+            rgba(102, 192, 244, .07);
+        }
+
+        .coffee-icon {
+          font-size: 11px;
+          line-height: 1;
+          opacity: .8;
+          transition:
+            transform .18s ease,
+            opacity .18s ease;
+        }
+
+        .support-arrow {
+          font-size: 9px;
+          line-height: 1;
+          opacity: .45;
+          transform:
+            translateY(-1px);
+          transition:
+            transform .18s ease,
+            opacity .18s ease;
+        }
+
+        .support-dev:hover
+        .coffee-icon {
+          opacity: 1;
+          transform:
+            translateY(-1px);
+        }
+
+        .support-dev:hover
+        .support-arrow {
+          opacity: .9;
+          transform:
+            translate(2px, -2px);
+        }
+
+        /* ---------------------------------------------------
+           COLLAPSED PRICEFORGE ICON
+        --------------------------------------------------- */
+
+        .collapsed-view {
+          display: none;
+          position: relative;
+          width: 64px;
+          height: 64px;
+          padding: 0;
+          border: none;
+          border-radius: 50%;
+          background: #15191f;
+          cursor: pointer;
+          overflow: visible;
+          box-shadow:
+            0 10px 28px
+            rgba(0, 0, 0, .42),
+            0 0 18px
+            rgba(102, 192, 244, .08);
+          transition:
+            transform .16s ease,
+            box-shadow .16s ease;
+        }
+
+        .collapsed-view:hover {
+          transform: scale(1.04);
+        }
+
+        .collapsed-view:active {
+          transform: scale(.98);
+        }
+
+        .collapsed-character {
+          display: block;
+          width: 64px;
+          height: 64px;
+          object-fit: contain;
+          border-radius: 50%;
+        }
+
+        /* ---------------------------------------------------
+           COLLAPSED VERDICT DOT
+        --------------------------------------------------- */
+
+        .collapsed-status {
+          position: absolute;
+          top: 1px;
+          right: 1px;
+          width: 11px;
+          height: 11px;
+          box-sizing: border-box;
+          border: 2px solid #15191f;
+          border-radius: 50%;
+          background: #f4c95d;
+          box-shadow:
+            0 0 8px
+            rgba(244, 201, 93, .45);
+        }
+
+        /* BUY NOW */
+
+        .panel[data-type="historical-low"]
+        .collapsed-status {
+          background: #8ee6ad;
+          box-shadow:
+            0 0 8px
+            rgba(142, 230, 173, .55);
+        }
+
+        /* GOOD TIME */
+
+        .panel[data-type="fair"]
+        .collapsed-status,
+
+        .panel[data-type="good"]
+        .collapsed-status {
+          background: #f4c95d;
+          box-shadow:
+            0 0 8px
+            rgba(244, 201, 93, .5);
+        }
+
+        /* WAIT */
+
+        .panel[data-type="wait"]
+        .collapsed-status {
+          background: #af1c1c;
+          box-shadow:
+            0 0 8px
+            rgba(175, 28, 28, .55);
+        }
+
+        /* FREE */
+
+        .panel[data-type="free"]
+        .collapsed-status {
+          background: #8ee6ad;
+          box-shadow:
+            0 0 8px
+            rgba(142, 230, 173, .55);
+        }
+
+        /* ---------------------------------------------------
+           COLLAPSED STATE
         --------------------------------------------------- */
 
         .panel.is-collapsed {
-          width: max-content;
-
-          min-width: 164px;
-        }
-
-        .panel.is-collapsed .content {
-          display: none;
-        }
-
-        .panel.is-collapsed .powered-by {
-          display: none;
-        }
-
-        .panel.is-collapsed .panel-footer {
+          width: 64px;
+          height: 64px;
+          min-width: 64px;
+          min-height: 64px;
           padding: 0;
+          overflow: visible;
+          background: transparent;
+          border: none;
+          border-radius: 50%;
+          box-shadow: none;
         }
 
+        .panel.is-collapsed .content,
+        .panel.is-collapsed .panel-footer,
         .panel.is-collapsed .panel-controls {
-          position: static;
+          display: none;
+        }
 
-          padding: 10px;
-
-          justify-content: center;
+        .panel.is-collapsed
+        .collapsed-view {
+          display: block;
         }
 
         /* ---------------------------------------------------
@@ -690,9 +829,9 @@ if (!gamePageMatch) {
         --------------------------------------------------- */
 
         @keyframes rise {
+
           from {
             opacity: 0;
-
             transform:
               translateY(12px)
               scale(.98);
@@ -700,11 +839,11 @@ if (!gamePageMatch) {
 
           to {
             opacity: 1;
-
             transform:
               translateY(0)
               scale(1);
           }
+
         }
 
         /* ---------------------------------------------------
@@ -712,21 +851,51 @@ if (!gamePageMatch) {
         --------------------------------------------------- */
 
         @media (max-width: 480px) {
+
           .panel {
             right: 16px;
             bottom: 16px;
           }
+
         }
 
         @media (prefers-reduced-motion: reduce) {
+
           .panel {
             animation: none;
           }
+
+          .collapsed-view {
+            transition: none;
+          }
+
         }
 
       </style>
 
       <section class="panel">
+
+        <!-- COLLAPSED PRICEFORGE ICON -->
+
+        <button
+          class="collapsed-view"
+          type="button"
+          aria-label="Expand PriceForge"
+          title="Expand PriceForge"
+        >
+
+          <img
+            class="collapsed-character"
+            src="${chrome.runtime.getURL("test.png")}"
+            alt=""
+          >
+
+          <span
+            class="collapsed-status"
+            aria-hidden="true"
+          ></span>
+
+        </button>
 
         <!-- TOP CONTROLS -->
 
@@ -738,14 +907,18 @@ if (!gamePageMatch) {
             aria-label="Collapse PriceForge"
             aria-expanded="true"
             title="Collapse PriceForge"
-          >−</button>
+          >
+            −
+          </button>
 
           <button
             class="header-button close"
             type="button"
             aria-label="Close PriceForge"
             title="Close PriceForge"
-          >&times;</button>
+          >
+            &times;
+          </button>
 
         </div>
 
@@ -788,162 +961,42 @@ if (!gamePageMatch) {
               class="verdict-speaker"
               aria-hidden="true"
             >
+
               <img
                 src="${chrome.runtime.getURL("test.png")}"
                 alt=""
               >
+
             </div>
 
             <div class="speech verdict-text">
+
               I am reviewing the recent price history.
+
             </div>
 
           </div>
 
           <!-- PRICE ANALYSIS TOGGLE -->
 
-            <button
-              class="analysis-toggle"
-              type="button"
-              aria-expanded="false"
-            >
-              <span>
-                View price analysis
-              </span>
+          <button
+            class="analysis-toggle"
+            type="button"
+            aria-expanded="false"
+          >
 
-              <span
-                class="analysis-toggle-arrow"
-                aria-hidden="true"
-              >›</span>
-            </button>
+            <span>
+              View price analysis
+            </span>
 
-            <!-- PRICE ANALYSIS -->
-
-            <div
-              class="analysis"
+            <span
+              class="analysis-toggle-arrow"
               aria-hidden="true"
             >
+              ›
+            </span>
 
-              <div class="price-chart">
-
-                <div
-                  class="chart-row"
-                  data-chart="normal"
-                >
-                  <span class="chart-price">
-                    --
-                  </span>
-
-                  <span class="chart-track">
-                    <span class="chart-fill"></span>
-                  </span>
-
-                  <span class="chart-note">
-                    Normal price
-                  </span>
-                </div>
-
-                <div
-                  class="chart-row current"
-                  data-chart="current"
-                >
-                  <span class="chart-price">
-                    --
-                  </span>
-
-                  <span class="chart-track">
-                    <span class="chart-fill"></span>
-
-                    <span
-                      class="chart-marker"
-                      aria-hidden="true"
-                    ></span>
-                  </span>
-
-                  <span class="chart-note">
-                    Current price
-                  </span>
-                </div>
-
-                <div
-                  class="chart-row"
-                  data-chart="typical"
-                >
-                  <span class="chart-price">
-                    --
-                  </span>
-
-                  <span class="chart-track">
-                    <span class="chart-fill"></span>
-                  </span>
-
-                  <span class="chart-note">
-                    Typical sale
-                  </span>
-                </div>
-
-                <div
-                  class="chart-row"
-                  data-chart="recent"
-                >
-                  <span class="chart-price">
-                    --
-                  </span>
-
-                  <span class="chart-track">
-                    <span class="chart-fill"></span>
-                  </span>
-
-                  <span class="chart-note">
-                    3 Month low
-                  </span>
-                </div>
-
-              </div>
-            </div>
-
-            <!-- KEY PRICE CHECK -->
-
-            <button
-              class="key-check-toggle"
-              type="button"
-              aria-expanded="false"
-            >
-              <span>
-                Is a key cheaper?
-              </span>
-
-              <span
-                class="key-check-toggle-arrow"
-                aria-hidden="true"
-              >›</span>
-            </button>
-
-            <div
-              class="key-check"
-              aria-hidden="true"
-            >
-              <div class="key-check-icon">
-                <span class="key-check-tick">✓</span>
-                <img
-                  class="key-check-steam-logo"
-                  src="${chrome.runtime.getURL("steam-logo.png")}"
-                  alt=""
-                >
-              </div>
-
-              <div class="key-check-content">
-
-                <div class="key-check-title">
-                  Keys are cheaper
-                </div>
-
-                <div class="key-check-text">
-                  An external game key is currently cheaper than Steam.
-                </div>
-
-              </div>
-            </div>
+          </button>
 
           <!-- PRICE ANALYSIS -->
 
@@ -964,9 +1017,7 @@ if (!gamePageMatch) {
                 </span>
 
                 <span class="chart-track">
-
                   <span class="chart-fill"></span>
-
                 </span>
 
                 <span class="chart-note">
@@ -1011,9 +1062,7 @@ if (!gamePageMatch) {
                 </span>
 
                 <span class="chart-track">
-
                   <span class="chart-fill"></span>
-
                 </span>
 
                 <span class="chart-note">
@@ -1032,9 +1081,7 @@ if (!gamePageMatch) {
                 </span>
 
                 <span class="chart-track">
-
                   <span class="chart-fill"></span>
-
                 </span>
 
                 <span class="chart-note">
@@ -1047,27 +1094,115 @@ if (!gamePageMatch) {
 
           </div>
 
+          <!-- KEY PRICE CHECK -->
+
+          <button
+            class="key-check-toggle"
+            type="button"
+            aria-expanded="false"
+          >
+
+            <span>
+              Is a key cheaper?
+            </span>
+
+            <span
+              class="key-check-toggle-arrow"
+              aria-hidden="true"
+            >
+              ›
+            </span>
+
+          </button>
+
+          <div
+            class="key-check"
+            aria-hidden="true"
+          >
+
+            <div class="key-check-icon">
+
+              <span class="key-check-tick">
+                ✓
+              </span>
+
+              <img
+                class="key-check-steam-logo"
+                src="${chrome.runtime.getURL("steam-logo.png")}"
+                alt=""
+              >
+
+            </div>
+
+            <div class="key-check-content">
+
+              <div class="key-check-title">
+                Keys are cheaper
+              </div>
+
+              <div class="key-check-text">
+                An external game key is currently cheaper than Steam.
+              </div>
+
+            </div>
+
+          </div>
+
         </div>
 
         <!-- FOOTER -->
 
         <div class="panel-footer">
 
-          <div class="powered-by">
+          <div class="footer-content">
 
-            <span class="mark">
-              ⚒
-            </span>
+            <div class="powered-by">
 
-            <span>
-              Powered by PriceForge
-            </span>
+              <span class="mark">
+                ⚒
+              </span>
+
+              <span>
+                Powered by PriceForge
+              </span>
+
+            </div>
+
+            <a
+              class="support-dev"
+              href="https://www.buymeacoffee.com/pgdev"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Support the developer"
+              title="Support the developer"
+            >
+
+              <span
+                class="coffee-icon"
+                aria-hidden="true"
+              >
+                ☕
+              </span>
+
+              <span>
+                Support the developer
+              </span>
+
+              <span
+                class="support-arrow"
+                aria-hidden="true"
+              >
+                ↗
+              </span>
+
+            </a>
 
           </div>
 
         </div>
 
       </section>
+
     `;
 
     // ---------------------------------------------------------
@@ -1083,31 +1218,38 @@ if (!gamePageMatch) {
     const collapseButton =
       shadowRoot.querySelector(".collapse");
 
+    const collapsedView =
+      shadowRoot.querySelector(".collapsed-view");
+
     const analysisToggle =
-      shadowRoot.querySelector(".analysis-toggle");
+      shadowRoot.querySelector(
+        ".analysis-toggle"
+      );
 
     const analysis =
-      shadowRoot.querySelector(".analysis");
+      shadowRoot.querySelector(
+        ".analysis"
+      );
 
     const analysisToggleArrow =
       shadowRoot.querySelector(
         ".analysis-toggle-arrow"
       );
 
-      const keyCheckToggle =
-    shadowRoot.querySelector(
-      ".key-check-toggle"
-    );
+    const keyCheckToggle =
+      shadowRoot.querySelector(
+        ".key-check-toggle"
+      );
 
-  const keyCheck =
-    shadowRoot.querySelector(
-      ".key-check"
-    );
+    const keyCheckElement =
+      shadowRoot.querySelector(
+        ".key-check"
+      );
 
-  const keyCheckToggleArrow =
-    shadowRoot.querySelector(
-      ".key-check-toggle-arrow"
-    );
+    const keyCheckToggleArrow =
+      shadowRoot.querySelector(
+        ".key-check-toggle-arrow"
+      );
 
     // ---------------------------------------------------------
     // CLOSE
@@ -1127,6 +1269,7 @@ if (!gamePageMatch) {
     collapseButton.addEventListener(
       "click",
       () => {
+
         const isCollapsed =
           panel.classList.toggle(
             "is-collapsed"
@@ -1151,10 +1294,36 @@ if (!gamePageMatch) {
             : "Collapse PriceForge"
         );
 
-        collapseButton.textContent =
-          isCollapsed
-            ? "+"
-            : "−";
+      }
+    );
+
+    // ---------------------------------------------------------
+    // EXPAND FROM COLLAPSED ICON
+    // ---------------------------------------------------------
+
+    collapsedView.addEventListener(
+      "click",
+      () => {
+
+        panel.classList.remove(
+          "is-collapsed"
+        );
+
+        collapseButton.setAttribute(
+          "aria-expanded",
+          "true"
+        );
+
+        collapseButton.setAttribute(
+          "aria-label",
+          "Collapse PriceForge"
+        );
+
+        collapseButton.setAttribute(
+          "title",
+          "Collapse PriceForge"
+        );
+
       }
     );
 
@@ -1165,6 +1334,7 @@ if (!gamePageMatch) {
     analysisToggle.addEventListener(
       "click",
       () => {
+
         const isOpen =
           analysis.classList.toggle(
             "is-open"
@@ -1191,44 +1361,48 @@ if (!gamePageMatch) {
           isOpen
             ? "⌃"
             : "›";
+
       }
     );
 
     // ---------------------------------------------------------
-// IS A KEY CHEAPER?
-// ---------------------------------------------------------
+    // IS A KEY CHEAPER?
+    // ---------------------------------------------------------
 
-keyCheckToggle.addEventListener(
-  "click",
-  () => {
+    keyCheckToggle.addEventListener(
+      "click",
+      () => {
 
-    const isOpen =
-      keyCheck.classList.toggle(
-        "is-open"
-      );
+        const isOpen =
+          keyCheckElement.classList.toggle(
+            "is-open"
+          );
 
-    keyCheckToggle.setAttribute(
-      "aria-expanded",
-      String(isOpen)
+        keyCheckToggle.setAttribute(
+          "aria-expanded",
+          String(isOpen)
+        );
+
+        keyCheckElement.setAttribute(
+          "aria-hidden",
+          String(!isOpen)
+        );
+
+        keyCheckToggleArrow.textContent =
+          isOpen
+            ? "⌃"
+            : "›";
+
+      }
     );
-
-    keyCheck.setAttribute(
-      "aria-hidden",
-      String(!isOpen)
-    );
-
-    keyCheckToggleArrow.textContent =
-      isOpen
-        ? "⌃"
-        : "›";
-  }
-);
 
     // ---------------------------------------------------------
     // ADD TO PAGE
     // ---------------------------------------------------------
 
-    document.body.appendChild(priceforge);
+    document.body.appendChild(
+      priceforge
+    );
 
     // ---------------------------------------------------------
     // REQUEST GAME DATA
@@ -1307,7 +1481,7 @@ keyCheckToggle.addEventListener(
         const historicalLow =
           data.historicalLow?.price;
 
-        const keyCheck =
+        const externalKeyCheck =
           data.externalKeyCheck;
 
         // -----------------------------------------------------
@@ -1328,10 +1502,14 @@ keyCheckToggle.addEventListener(
 
         const formatPrice =
           value => {
-            return typeof value === "number" &&
+
+            return (
+              typeof value === "number" &&
               Number.isFinite(value)
+            )
               ? `£${value.toFixed(2)}`
               : "Unavailable";
+
           };
 
         // -----------------------------------------------------
@@ -1339,6 +1517,7 @@ keyCheckToggle.addEventListener(
         // -----------------------------------------------------
 
         const chartValues = {
+
           normal:
             signals?.normalPrice,
 
@@ -1351,15 +1530,17 @@ keyCheckToggle.addEventListener(
 
           recent:
             signals?.recentLow
+
         };
 
         const availableChartValues =
-          Object.values(chartValues)
-            .filter(
-              value =>
-                typeof value === "number" &&
-                Number.isFinite(value)
-            );
+          Object.values(
+            chartValues
+          ).filter(
+            value =>
+              typeof value === "number" &&
+              Number.isFinite(value)
+          );
 
         const chartMaximum =
           Math.max(
@@ -1385,21 +1566,40 @@ keyCheckToggle.addEventListener(
               return;
             }
 
-            row.querySelector(
-              ".chart-price"
-            ).textContent =
-              formatPrice(value);
+            const priceElement =
+              row.querySelector(
+                ".chart-price"
+              );
 
-            row.querySelector(
-              ".chart-fill"
-            ).style.width =
-              typeof value === "number" &&
-              Number.isFinite(value)
-                ? `${Math.max(
-                    5,
-                    (value / chartMaximum) * 100
-                  )}%`
-                : "5%";
+            const fillElement =
+              row.querySelector(
+                ".chart-fill"
+              );
+
+            if (priceElement) {
+
+              priceElement.textContent =
+                formatPrice(value);
+
+            }
+
+            if (fillElement) {
+
+              fillElement.style.width =
+                typeof value === "number" &&
+                Number.isFinite(value)
+
+                  ? `${Math.max(
+                      5,
+                      (value /
+                        chartMaximum) *
+                        100
+                    )}%`
+
+                  : "5%";
+
+            }
+
           }
         );
 
@@ -1414,7 +1614,8 @@ keyCheckToggle.addEventListener(
 
         if (
           currentRow &&
-          typeof chartValues.current === "number"
+          typeof chartValues.current ===
+            "number"
         ) {
 
           currentRow.style.setProperty(
@@ -1423,12 +1624,14 @@ keyCheckToggle.addEventListener(
               0,
               Math.min(
                 100,
-                (chartValues.current /
-                  chartMaximum) *
-                  100
+                (
+                  chartValues.current /
+                  chartMaximum
+                ) * 100
               )
             )}%`
           );
+
         }
 
         // -----------------------------------------------------
@@ -1474,11 +1677,17 @@ keyCheckToggle.addEventListener(
           apiVerdict?.type ||
           (
             displayedVerdict === "BUY NOW"
+
               ? "historical-low"
+
               : displayedVerdict === "GOOD TIME"
+
                 ? "good"
+
                 : displayedVerdict === "IT'S FREE"
+
                   ? "free"
+
                   : "wait"
           );
 
@@ -1487,8 +1696,10 @@ keyCheckToggle.addEventListener(
         // -----------------------------------------------------
 
         if (verdictName) {
+
           verdictName.textContent =
             displayedVerdict;
+
         }
 
         // -----------------------------------------------------
@@ -1496,8 +1707,10 @@ keyCheckToggle.addEventListener(
         // -----------------------------------------------------
 
         if (confidence) {
+
           confidence.textContent =
             `${displayedConfidence} confidence`;
+
         }
 
         // -----------------------------------------------------
@@ -1505,8 +1718,10 @@ keyCheckToggle.addEventListener(
         // -----------------------------------------------------
 
         if (verdictElement) {
+
           verdictElement.textContent =
             displayedReason;
+
         }
 
         // -----------------------------------------------------
@@ -1514,8 +1729,10 @@ keyCheckToggle.addEventListener(
         // -----------------------------------------------------
 
         if (panel) {
+
           panel.dataset.type =
             visualVerdictType;
+
         }
 
         // -----------------------------------------------------
@@ -1539,11 +1756,12 @@ keyCheckToggle.addEventListener(
             "aria-hidden",
             "true"
           );
+
         }
 
-        // ---------------------------------------------------------
+        // -----------------------------------------------------
         // EXTERNAL KEY CHECK
-        // ---------------------------------------------------------
+        // -----------------------------------------------------
 
         const keyCheckTitle =
           shadowRoot.querySelector(
@@ -1560,30 +1778,54 @@ keyCheckToggle.addEventListener(
             ".key-check-icon"
           );
 
+        const keyCheckTick =
+          keyCheckIcon?.querySelector(
+            ".key-check-tick"
+          );
 
-
-        const keyCheckElement =
-          shadowRoot.querySelector(
-            ".key-check"
+        const keyCheckSteamLogo =
+          keyCheckIcon?.querySelector(
+            ".key-check-steam-logo"
           );
 
         if (
-          keyCheck?.available &&
-          keyCheck.cheaper
+          externalKeyCheck?.available &&
+          externalKeyCheck.cheaper
         ) {
 
-          // -------------------------------------------------------
+          // ---------------------------------------------------
           // KEYS ARE CHEAPER
-          // -------------------------------------------------------
+          // ---------------------------------------------------
 
-          keyCheckTitle.textContent =
-            "Keys are cheaper";
+          if (keyCheckTitle) {
 
-          keyCheckText.textContent =
-            `A cheaper game key is currently available, starting at ${formatPrice(keyCheck.price)}`;
+            keyCheckTitle.textContent =
+              "Keys are cheaper";
 
-          keyCheckIcon.querySelector(".key-check-tick").style.display = "block";
-          keyCheckIcon.querySelector(".key-check-steam-logo").style.display = "none";
+          }
+
+          if (keyCheckText) {
+
+            keyCheckText.textContent =
+              `A cheaper game key is currently available, starting at ${formatPrice(
+                externalKeyCheck.price
+              )}`;
+
+          }
+
+          if (keyCheckTick) {
+
+            keyCheckTick.style.display =
+              "block";
+
+          }
+
+          if (keyCheckSteamLogo) {
+
+            keyCheckSteamLogo.style.display =
+              "none";
+
+          }
 
           keyCheckElement?.setAttribute(
             "data-result",
@@ -1592,23 +1834,43 @@ keyCheckToggle.addEventListener(
 
         } else {
 
-          // -------------------------------------------------------
+          // ---------------------------------------------------
           // STEAM WINS
-          // -------------------------------------------------------
+          // ---------------------------------------------------
 
-          keyCheckTitle.textContent =
-            "Steam wins";
+          if (keyCheckTitle) {
 
-          keyCheckText.textContent =
-            "Steam currently has the best price";
+            keyCheckTitle.textContent =
+              "Steam wins";
 
-          keyCheckIcon.querySelector(".key-check-tick").style.display = "none";
-          keyCheckIcon.querySelector(".key-check-steam-logo").style.display = "block";
+          }
+
+          if (keyCheckText) {
+
+            keyCheckText.textContent =
+              "Steam currently has the best price";
+
+          }
+
+          if (keyCheckTick) {
+
+            keyCheckTick.style.display =
+              "none";
+
+          }
+
+          if (keyCheckSteamLogo) {
+
+            keyCheckSteamLogo.style.display =
+              "block";
+
+          }
 
           keyCheckElement?.setAttribute(
             "data-result",
             "steam"
           );
+
         }
 
         // -----------------------------------------------------
@@ -1634,7 +1896,14 @@ keyCheckToggle.addEventListener(
           "PriceForge Verdict:",
           apiVerdict
         );
+
+        console.log(
+          "External Key Check:",
+          externalKeyCheck
+        );
+
       }
     );
+
   }
 }
