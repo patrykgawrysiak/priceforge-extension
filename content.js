@@ -17,7 +17,6 @@ if (!gamePageMatch) {
   // ---------------------------------------------------------
 
   if (!document.getElementById("priceforge-root")) {
-
     const purchaseArea =
       document.querySelector("#game_area_purchase");
 
@@ -63,7 +62,6 @@ if (!gamePageMatch) {
     // ---------------------------------------------------------
 
     shadowRoot.innerHTML = `
-
       <style>
 
         :host {
@@ -600,7 +598,7 @@ if (!gamePageMatch) {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 7px;
+          gap: 5px;
         }
 
         .powered-by {
@@ -629,10 +627,11 @@ if (!gamePageMatch) {
         }
 
         /* ---------------------------------------------------
-           SUPPORT DEVELOPER
+           FOOTER LINKS
         --------------------------------------------------- */
 
-        .support-dev {
+        .support-dev,
+        .flag-bug {
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -653,7 +652,8 @@ if (!gamePageMatch) {
             background .18s ease;
         }
 
-        .support-dev:hover {
+        .support-dev:hover,
+        .flag-bug:hover {
           color: #d6d7d8;
           background:
             rgba(102, 192, 244, .07);
@@ -668,7 +668,20 @@ if (!gamePageMatch) {
             opacity .18s ease;
         }
 
-        .support-arrow {
+        .bug-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          line-height: 1;
+          opacity: .7;
+          transition:
+            transform .18s ease,
+            opacity .18s ease;
+        }
+
+        .support-arrow,
+        .bug-arrow {
           font-size: 9px;
           line-height: 1;
           opacity: .45;
@@ -679,15 +692,20 @@ if (!gamePageMatch) {
             opacity .18s ease;
         }
 
-        .support-dev:hover
-        .coffee-icon {
+        .support-dev:hover .coffee-icon {
           opacity: 1;
           transform:
             translateY(-1px);
         }
 
-        .support-dev:hover
-        .support-arrow {
+        .flag-bug:hover .bug-icon {
+          opacity: 1;
+          transform:
+            translateY(-1px);
+        }
+
+        .support-dev:hover .support-arrow,
+        .flag-bug:hover .bug-arrow {
           opacity: .9;
           transform:
             translate(2px, -2px);
@@ -829,7 +847,6 @@ if (!gamePageMatch) {
         --------------------------------------------------- */
 
         @keyframes rise {
-
           from {
             opacity: 0;
             transform:
@@ -843,7 +860,6 @@ if (!gamePageMatch) {
               translateY(0)
               scale(1);
           }
-
         }
 
         /* ---------------------------------------------------
@@ -851,16 +867,13 @@ if (!gamePageMatch) {
         --------------------------------------------------- */
 
         @media (max-width: 480px) {
-
           .panel {
             right: 16px;
             bottom: 16px;
           }
-
         }
 
         @media (prefers-reduced-motion: reduce) {
-
           .panel {
             animation: none;
           }
@@ -868,7 +881,6 @@ if (!gamePageMatch) {
           .collapsed-view {
             transition: none;
           }
-
         }
 
       </style>
@@ -883,7 +895,6 @@ if (!gamePageMatch) {
           aria-label="Expand PriceForge"
           title="Expand PriceForge"
         >
-
           <img
             class="collapsed-character"
             src="${chrome.runtime.getURL("test.png")}"
@@ -894,7 +905,6 @@ if (!gamePageMatch) {
             class="collapsed-status"
             aria-hidden="true"
           ></span>
-
         </button>
 
         <!-- TOP CONTROLS -->
@@ -970,9 +980,7 @@ if (!gamePageMatch) {
             </div>
 
             <div class="speech verdict-text">
-
               I am reviewing the recent price history.
-
             </div>
 
           </div>
@@ -1168,6 +1176,8 @@ if (!gamePageMatch) {
 
             </div>
 
+            <!-- SUPPORT DEVELOPER -->
+
             <a
               class="support-dev"
               href="https://www.buymeacoffee.com/pgdev"
@@ -1197,12 +1207,42 @@ if (!gamePageMatch) {
 
             </a>
 
+            <!-- FLAG A BUG -->
+
+            <a
+              class="flag-bug"
+              href="https://forms.gle/R5vdY613YWkM21FD6"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Flag a bug"
+              title="Flag a bug"
+            >
+
+              <span
+                class="bug-icon"
+                aria-hidden="true"
+              >
+                ⚑
+              </span>
+
+              <span>
+                Flag a bug
+              </span>
+
+              <span
+                class="bug-arrow"
+                aria-hidden="true"
+              >
+                ↗
+              </span>
+
+            </a>
+
           </div>
 
         </div>
 
       </section>
-
     `;
 
     // ---------------------------------------------------------
@@ -1577,10 +1617,8 @@ if (!gamePageMatch) {
               );
 
             if (priceElement) {
-
               priceElement.textContent =
                 formatPrice(value);
-
             }
 
             if (fillElement) {
@@ -1677,17 +1715,11 @@ if (!gamePageMatch) {
           apiVerdict?.type ||
           (
             displayedVerdict === "BUY NOW"
-
               ? "historical-low"
-
               : displayedVerdict === "GOOD TIME"
-
                 ? "good"
-
                 : displayedVerdict === "IT'S FREE"
-
                   ? "free"
-
                   : "wait"
           );
 
