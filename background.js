@@ -1,24 +1,21 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type !== "getGameData") {
-    return;
-  }
+  if (message?.type !== "getGameData") return;
 
-  fetch(`http://localhost:3000/api/game/${message.appId}`)
-    .then(response => {
+  fetch(`https://priceforge-extension.onrender.com/api/game/${message.appId}`)
+    .then(async response => {
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}`);
+        throw new Error(data?.error || "API request failed");
       }
 
-      return response.json();
-    })
-    .then(data => {
       sendResponse({
         success: true,
         data
       });
     })
     .catch(error => {
-      console.error("PriceForge background API error:", error);
+      console.error("PriceForge API error:", error);
 
       sendResponse({
         success: false,

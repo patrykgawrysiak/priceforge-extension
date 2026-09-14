@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Game price intelligence for Steam.",
   "host_permissions": [
-    "https://localhost:3000/*"
+  "https://priceforge-extension.onrender.com/*"
   ],
   "background": {
     "service_worker": "background.js"
