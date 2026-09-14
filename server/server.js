@@ -7,7 +7,7 @@ const app = express();
 
 app.use(cors());
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 
 // =========================================================
@@ -2427,10 +2427,11 @@ app.get(
 
 app.listen(
   PORT,
+  "0.0.0.0",
   () => {
 
     console.log(
-      `PriceForge API running on http://localhost:${PORT}`
+      `PriceForge API running on port ${PORT}`
     );
 
   }
