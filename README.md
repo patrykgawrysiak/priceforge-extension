@@ -88,7 +88,7 @@ Steam
   ↓
 Chrome Extension
   ↓
-Background Service Worker
+Background Service Worker - Render
   ↓
 PriceForge API
   ↓
